@@ -140,7 +140,7 @@ def plot1d_multiple(n):
 
 def plotIq():
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    data_files = glob.glob( current_dir + '/data/scan*_Iq.txt')
+    data_files = glob.glob( current_dir + '/data/scan1_Iq.txt')
 
     data = []
     for filename in data_files:

@@ -57,3 +57,12 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Django collected static files
+site1/static/
+
+# Emacs backup files
+*~
+
+# Virtual environment
+venv/
