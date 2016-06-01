@@ -182,7 +182,16 @@
               start = [1.0, 1.0],
               min = [-1000.0, -1000.0],
               max = [1000.0, 1000.0],
-              fitResults = cobyla.nlFit(tangled, fn, start, min, max),
+              constraints = function(tangled, fn, params) {
+                  var I0 = params[0],
+                      RG = params[1];
+                  return [
+                      I0, // >= 0 because ln(I0) can be taken
+                      RG, // >= 0 because radius/distance is positive
+                  ];
+              },
+              fitResults = cobyla.nlFit(tangled, fn,
+                                        start, min, max, constraints),
               newy = fullX.map(function(Q) {
                   var y = fn(Q, fitResults.params);
                   if (y < fullMinY) {
