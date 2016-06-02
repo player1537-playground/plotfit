@@ -57,7 +57,7 @@ class PlotIqView(TemplateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super(PlotIqView, self).get_context_data(**kwargs)
-        context['plot'] = plots.plotIq()
+        context['filename'] = 'data/{}'.format(self.kwargs['filename'])
         return context
 
 class PlotLiveView(TemplateView):
@@ -79,3 +79,12 @@ def  plot_live_update(request):
         return JsonResponse([data], safe=False)
     else:
         return HttpResponseBadRequest()
+
+class PlotIqSelectFile(TemplateView):
+    template_name = "plotIq_select_file.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PlotIqSelectFile, self).get_context_data(**kwargs)
+        context['filenames'] = ['HSA_test.dat', 'scan1_Iq.txt', 'scan2_Iq.txt']
+        return context
+    

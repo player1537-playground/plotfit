@@ -5,7 +5,6 @@ import glob
 import os
 import datetime
 
-
 def plot1d():
     x_data = np.arange(0, 120,0.1)
     trace1 = go.Scatter(
@@ -138,30 +137,27 @@ def plot1d_multiple(n):
     plot_div = plot(fig, output_type='div', include_plotlyjs=False)
     return plot_div
 
-def plotIq():
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    data_files = glob.glob( current_dir + '/data/scan1_Iq.txt')
+def plotIq(filename):
 
-    data = []
-    for filename in data_files:
-        csv = np.genfromtxt (filename, delimiter=None,  comments='#')
-        x = csv[:,0]
-        y = csv[:,1]
-        trace = go.Scatter(
-            x=x,
-            y=y,
-            mode = 'lines+markers',
-            name = filename.split('/')[-1],
-            error_y=dict(
-                type='data',
-                visible=True,
-                array=np.sqrt(csv[:,1]),
-                thickness=1.5,
-                width=3,
-                opacity=0.5
-            ),
-        )
-        data.append(trace)
+    csv = np.genfromtxt (filename, delimiter=None,  comments='#')
+    x = csv[:,0]
+    y = csv[:,1]
+    error = np.sqrt(csv[:, 2])
+    trace = go.Scatter(
+        x=x,
+        y=y,
+        mode = 'lines+markers',
+        name = filename.split('/')[-1],
+        error_y=dict(
+            type='data',
+            visible=True,
+            array=error,
+            thickness=1.5,
+            width=3,
+            opacity=0.5
+        ),
+    )
+    data = [trace]
 
     layout = go.Layout(
         height=600,

@@ -15,7 +15,121 @@
 
 <div class="container">
   <div class="row" style="border: 1px solid black">
-    <div id="plot_container" class="col-md-12">{{plot|safe}}</div>
+    <div id="plot_scale" class="col-md-3">
+      <div class="btn-group-vertical">
+
+        <!-- X select: linear/log -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>X Axis</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-xaxis-linear" class="btn-xaxis btn btn-default active">Linear</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-xaxis-log" class="btn-xaxis btn btn-default">Log</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Y select: linear/log -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>Y Axis</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-yaxis-linear" class="btn-yaxis btn btn-default active">Linear</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-yaxis-log" class="btn-yaxis btn btn-default">Log</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- X Select: all the options -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>X Data</button>
+            </div>
+            <div id="dropdown-xaxis-preprocess" class="btn-group dropdown">
+              <button type="button" class="btn btn-default dropdown-toggle"
+                      data-toggle="dropdown">Dropdown<span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" value="Q">Q</a></li>
+                <li><a href="#" value="Log(Q)">Log(Q)</a></li>
+                <li><a href="#" value="Ln(Q)">Ln(Q)</a></li>
+                <li><a href="#" value="Q^2">Q^2</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Y Select: all the options -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>Y Data</button>
+            </div>
+            <div id="dropdown-yaxis-preprocess" class="btn-group dropdown">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown<span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" value="I">I</a></li>
+                <li><a href="#" value="Log(I)">Log(I)</a></li>
+                <li><a href="#" value="Ln(I)">Ln(I)</a></li>
+                <li><a href="#" value="1/I">1/I</a></li>
+                <li><a href="#" value="1/Sqrt(I)">1/Sqrt(I)</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- The actual plot contents -->
+    <div id="plot_container" class="col-md-7"></div>
+
+    <!-- Controls the fitting functions -->
+    <div id="plot_calc" class="col-md-2">
+      <div class="btn-group-vertical">
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default">Guinier</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default">Kratky</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default">Zimm</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default">Parod</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
 
@@ -46,17 +160,21 @@
 {% endblock %}
 
 {% block localjs %}
+<script type="text/javascript">
+    var filename = "{% static filename %}";
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
 <script type="text/javascript">
-    
+
   //
   // Fit the provided data to a nonlinear curve
   //
-  
+
   cobyla = (function(my) {
       "use strict"
       // adds nlFit to cobyla, if it exists
-      
+
       my.nlFit = function nlFit(data, fitFn, start, min, max, constraints, solverParams) {
           // nlFit will minimize the sum of squared differences (y1^2-y2^2) between
           // the data points (x,y1) and the fitFn (x,y2).
@@ -84,27 +202,27 @@
           //
           // solverParams is an object with any of the keys rhoStart, rhoEnd, iprint, maxFun
           // if any of the keys are missing they default to 5, 1e-6, 0 and 5000 respectively
-          
+
           var x = start;
           var numConstraints = 0;
           if (min) { numConstraints += min.length; }
           if (max) { numConstraints += max.length; }
           if (constraints) { numConstraints += constraints(data, fitFn, x).length; }
           if (!solverParams) { solverParams = {}; }
-          
+
           var defaultSPs = { rhoStart: 5.0, rhoEnd: 1.0e-6, iprint: 0, maxFun: 3500 };
-          
+
           function obj(n, m, x, con) {
               // objective function
               // n is the number of variables to solve for
               // m is the number of constraints
               // x is an array of the variables
               // con is an array of the constraints
-              
+
               var sumSqr = 0;
               var c = 0;
               var i, yData, yFit, cx;
-              
+
               for (i=0; i<data.length; i++) {
                   yData = data[i][1];
                   yFit  = fitFn(data[i][0], x);
@@ -122,8 +240,8 @@
               }
               return sumSqr;
           }
-          
-          var status = cobyla.findMinimum(obj, 
+
+          var status = cobyla.findMinimum(obj,
                                           x.length,
                                           numConstraints,
                                           x,
@@ -131,14 +249,14 @@
                                           typeof solverParams.rhoEnd==="undefined" ? defaultSPs.rhoEnd : solverParams.rhoEnd,
                                           typeof solverParams.iprint==="undefined" ? defaultSPs.iprint : solverParams.iprint,
                                           typeof solverParams.maxFun==="undefined" ? defaultSPs.maxFun : solverParams.maxFun );
-          
+
           return {params: x, obj: obj(x.length, numConstraints, x, new Array(numConstraints)), status: status};
       }
-      
+
       //
       // sample constraints function
       //
-      
+
       my.constrainAsCDF = function (data, fitFn, params) {
           // Requires the fit function to be between 0 and 1 at each data point
           var constraints = [],
@@ -150,69 +268,194 @@
           }
           return constraints;
       }
-      
+
       return my;
-      
+
   }(typeof cobyla==="undefined" ? {} : cobyla));
 </script>
 <script type="text/javascript">
 
   (function() {
-      var graphDiv = $("#plot_container .plotly-graph-div")[0],
-          trace = null,
-          fullData = graphDiv.data[0],
-          fullX = fullData.x,
-          fullY = fullData.y,
-          fullMinY = fullY.reduce((a, b) => Math.min(a, b), Math.Infinity);
+      var d3 = Plotly.d3,
+          xScales = d3.map(),
+          yScales = d3.map();
 
-      console.log(fullMinY);
+      xScales.set('Q', Q => Q);
+      xScales.set('Log(Q)', Q => Math.log10(Q));
+      xScales.set('Ln(Q)', Q => Math.log(Q));
+      xScales.set('Q^2', Q => Math.pow(Q, 2.0));
 
-      graphDiv.on('plotly_selected', function(eventData) {
-          var data = eventData.points,
-              x = data.map(function(d) { return d.x; }),
-              y = data.map(function(d) { return d.y; }),
-              fn = function(Q, params) {
-                  var I0 = params[0],
-                      RG = params[1],
-                      inside = -1.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0) / 3.0;
-                  
-                  return I0 * Math.exp(inside);
-              },
-              tangled = x.map(function(d, i) { return [d, y[i]]; }),
-              start = [1.0, 1.0],
-              min = [-1000.0, -1000.0],
-              max = [1000.0, 1000.0],
-              constraints = function(tangled, fn, params) {
-                  var I0 = params[0],
-                      RG = params[1];
-                  return [
-                      I0, // >= 0 because ln(I0) can be taken
-                      RG, // >= 0 because radius/distance is positive
-                  ];
-              },
-              fitResults = cobyla.nlFit(tangled, fn,
-                                        start, min, max, constraints),
-              newy = fullX.map(function(Q) {
-                  var y = fn(Q, fitResults.params);
-                  if (y < fullMinY) {
-                      y = fullMinY;
+      yScales.set('I', I => I);
+      yScales.set('Log(I)', I => Math.log10(I));
+      yScales.set('Ln(I)', I => Math.log(I));
+      yScales.set('1/I', I => 1.0 / I);
+      yScales.set('1/Sqrt(I)', I => 1.0 / Math.sqrt(I));
+
+      Plotly.d3.csv(filename)
+          .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
+          .get(function(error, rows) {
+              var graphDiv = $("#plot_container")[0],
+                  fullX = rows.map(function(d) { return d.Q; }),
+                  fullY = rows.map(function(d) { return d.I; }),
+                  fullDev = rows.map(function(d) { return d.dev; }),
+                  xScale = xScales.get('Q'),
+                  yScale = yScales.get('I'),
+                  plottedX,
+                  plottedY,
+                  plottedDev,
+                  plottedMinY;
+
+              function recalculateData() {
+                  plottedX = fullX.map(Q => xScale(Q));
+                  plottedY = fullY.map(I => yScale(I));
+                  plottedDev = fullDev.map(x => x);
+                  plottedMinY = d3.min(plottedY);
+              }
+
+              recalculateData();
+
+              var data = [{
+                  name: filename,
+                  x: plottedX,
+                  y: plottedY,
+                  mode: "lines+markers",
+                  error_y: {
+                      type: 'data',
+                      visible: true,
+                      array: plottedDev,
+                      thickness: 1.5,
+                      width: 3,
+                      opacity: 0.5,
+                  },
+              }],
+                  layout = {
+                      height: 600,
+                      width: 600,
+                      xaxis: {
+                          autorange: true,
+                          type: 'linear',
+                      },
+                      yaxis: {
+                          autorange: true,
+                          type: 'linear',
+                      },
+                      title: 'I_q chart',
+                  },
+                  trace = null;
+
+              Plotly.plot(graphDiv, data, layout);
+
+              graphDiv.on('plotly_selected', function(eventData) {
+                  if (trace !== null) {
+                      Plotly.deleteTraces(graphDiv, -1);
+                      trace = null;
                   }
-                  return y;
+
+                  if (typeof eventData === 'undefined') {
+                      return;
+                  }
+
+                  var data = eventData.points,
+                      x = data.map(function(d) { return d.x; }),
+                      y = data.map(function(d) { return d.y; }),
+                      fn = function(Q, params) {
+                          var I0 = params[0],
+                              RG = params[1],
+                              inside = -1.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0) / 3.0;
+
+                          return I0 * Math.exp(inside);
+                      },
+                      tangled = x.map(function(d, i) { return [d, y[i]]; }),
+                      start = [1.0, 1.0],
+                      min = [-1000.0, -1000.0],
+                      max = [1000.0, 1000.0],
+                      constraints = function(tangled, fn, params) {
+                          var I0 = params[0],
+                              RG = params[1];
+                          return [
+                              I0, // >= 0 because ln(I0) can be taken
+                              RG, // >= 0 because radius/distance is positive
+                          ];
+                      },
+                      fitResults = cobyla.nlFit(tangled, fn,
+                                                start, min, max, constraints),
+                      newy = fullX.map(function(Q) {
+                          var y = yScale(fn(Q, fitResults.params));
+                          return Math.max(plottedMinY, y);
+                      });
+
+                  console.log(eventData);
+
+                  console.log("I0 =", fitResults.params[0]);
+                  console.log("RG =", fitResults.params[1]);
+
+                  trace = { x: plottedX, y: newy, type: 'scatter' };
+
+                  Plotly.addTraces(graphDiv, trace);
               });
-          
-          console.log("RG =", fitResults.params[1]);
 
-          if (trace !== null) {
-              Plotly.deleteTraces(graphDiv, -1);
-          }
-          
-          trace = { x: fullX, y: newy, type: 'scatter' };
-          
-          Plotly.addTraces(graphDiv, trace);
-      });
+              $("#btn-xaxis-linear").on("click", function(eventData) {
+                  Plotly.relayout(graphDiv, { 'xaxis.type': 'linear' });
+                  $(".btn-xaxis").removeClass("active");
+                  $(this).addClass("active");
+              });
 
-      
+              $("#btn-xaxis-log").on("click", function(eventData) {
+                  Plotly.relayout(graphDiv, { 'xaxis.type': 'log' });
+                  $(".btn-xaxis").removeClass("active");
+                  $(this).addClass("active");
+              });
+
+              $("#btn-yaxis-linear").on("click", function(eventData) {
+                  Plotly.relayout(graphDiv, { 'yaxis.type': 'linear' });
+                  $(".btn-yaxis").removeClass("active");
+                  $(this).addClass("active");
+              });
+
+              $("#btn-yaxis-log").on("click", function(eventData) {
+                  Plotly.relayout(graphDiv, { 'yaxis.type': 'log' });
+                  $(".btn-yaxis").removeClass("active");
+                  $(this).addClass("active");
+              });
+
+              function redraw() {
+                  recalculateData();
+                  if (trace !== null) {
+                      Plotly.deleteTraces(graphDiv, -1);
+                      trace = null;
+                  }
+
+                  graphDiv.data[0].x = plottedX;
+                  graphDiv.data[0].y = plottedY;
+
+                  Plotly.redraw(graphDiv);
+              }
+
+
+              $("#dropdown-yaxis-preprocess li a").on("click", function() {
+                  var btn = $(this).parents(".dropdown").find(".btn"),
+                      val = $(this).attr('value');
+
+                  btn.html($(this).text() + ' <span class="caret"></span>');
+                  btn.val(val);
+
+                  yScale = yScales.get(val);
+                  redraw();
+              });
+
+              $("#dropdown-xaxis-preprocess li a").on("click", function() {
+                  var btn = $(this).parents(".dropdown").find(".btn"),
+                      val = $(this).attr('value');
+
+                  btn.html($(this).text() + ' <span class="caret"></span>');
+                  btn.val(val);
+
+                  xScale = xScales.get(val);
+                  redraw();
+              });
+
+          });
   })();
-  
+
 </script>
 {% endblock %}

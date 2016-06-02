@@ -7,3 +7,8 @@ export DJANGO_COLORS := nocolor
 .PHONY: runserver
 runserver:
 	python manage.py runserver
+
+.PHONY: collectstatic
+collectstatic:
+	python manage.py collectstatic
+
