@@ -15,7 +15,7 @@
 
 <div class="container">
   <div class="row" style="border: 1px solid black">
-    <div id="plot_scale" class="col-md-3">
+    <div id="plot_scale" class="col-md-3 col-sm-4">
       <div class="btn-group-vertical">
 
         <!-- X select: linear/log -->
@@ -95,20 +95,20 @@
         <!-- Variables: a, b, c -->
         <div class="form-horizontal">
           <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-md-2 control-label">a</label>
-            <div class="col-md-10">
+            <label for="" class="col-sm-2 col-xs-2 control-label">a</label>
+            <div class="col-sm-10 col-xs-10">
               <input type="text" class="form-control" placeholder="0" id="input-variable-a" />
             </div>
           </div>
           <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-md-2 control-label">b</label>
-            <div class="col-md-10">
+            <label for="" class="col-sm-2 col-xs-2 control-label">b</label>
+            <div class="col-sm-10 col-xs-10">
               <input type="text" class="form-control" placeholder="0" id="input-variable-b" />
             </div>
           </div>
           <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-md-2 control-label">c</label>
-            <div class="col-md-10">
+            <label for="" class="col-sm-2 col-xs-2 control-label">c</label>
+            <div class="col-sm-10 col-xs-10">
               <input type="text" class="form-control" placeholder="0" id="input-variable-c" />
             </div>
           </div>
@@ -118,10 +118,10 @@
     </div>
 
     <!-- The actual plot contents -->
-    <div id="plot_container" class="col-md-7"></div>
+    <div id="plot_container" class="col-md-7 col-sm-6"></div>
 
     <!-- Controls the fitting functions -->
-    <div id="plot_calc" class="col-md-2">
+    <div id="plot_calc" class="col-md-2 col-sm-2">
       <div class="btn-group-vertical">
 
         <div class="btn-group">
@@ -163,7 +163,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-sm-12 col-sm-12">
       <br/>
     </div>
   </div>
@@ -171,7 +171,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-sm-12">
       <pre>
         var myDiv = $('.plotly-graph-div')[0];
         myDiv.on('plotly_selected', function(eventData) {
@@ -337,7 +337,17 @@
       Plotly.d3.csv(filename)
           .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
           .get(function(error, fullData) {
-              var graphDiv = $("#plot_container")[0],
+              var WIDTH_PERCENT = 60,
+                  HEIGHT_PERCENT = 80,
+                  graphDivD3 = d3.select("#plot_container");
+
+              graphDivD3
+//                  .style("width", WIDTH_PERCENT + "%")
+//                  .style("margin-left", (100 - WIDTH_PERCENT) / 2 + '%')
+                  .style('height', HEIGHT_PERCENT + 'vh')
+//                  .style('margin-top', (100 - HEIGHT_PERCENT) / 2 + 'vh');
+
+              var graphDiv = graphDivD3.node(),
                   fullX = fullData.map(function(d) { return d.Q; }),
                   fullY = fullData.map(function(d) { return d.I; }),
                   fullDev = fullData.map(function(d) { return d.dev; }),
@@ -372,8 +382,8 @@
                   },
               }],
                   layout = {
-                      height: 600,
-                      width: 600,
+//                      height: 600,
+//                      width: 600,
                       xaxis: {
                           autorange: true,
                           type: 'linear',
@@ -510,6 +520,10 @@
               $("#input-variable-c").on('input', function() {
                   c = +$(this).val();
                   redraw();
+              });
+
+              window.addEventListener('resize', function() {
+                  Plotly.Plots.resize(graphDiv);
               });
 
 
