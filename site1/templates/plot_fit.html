@@ -4,6 +4,7 @@
 {% block head %}
 {{block.super}}
 <script src="https://cdn.plot.ly/plotly-latest.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css" type="text/css" />
 {% endblock %}
 
 {% block content %}
@@ -117,8 +118,15 @@
       </div>
     </div>
 
-    <!-- The actual plot contents -->
-    <div id="plot_container" class="col-md-7 col-sm-6"></div>
+    <div class="col-md-7 col-sm-6">
+      <!-- The actual plot contents -->
+      <div class="row">
+        <div id="plot_container" class="col-xs-12"></div>
+      </div>
+      <div class="row">
+        <div id="plot_range_slider" class="col-xs-12"></div>
+      </div>
+    </div>
 
     <!-- Controls the fitting functions -->
     <div id="plot_calc" class="col-md-2 col-sm-2">
@@ -192,6 +200,7 @@
     var filename = "{% static filename %}";
 </script>
 <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
 <script type="text/javascript">
 
@@ -396,19 +405,15 @@
 
               Plotly.plot(graphDiv, data, layout);
 
-              graphDiv.on('plotly_selected', function(eventData) {
+              function selectData(start, end) {
                   if (trace !== null) {
                       Plotly.deleteTraces(graphDiv, -1);
                       trace = null;
                   }
 
-                  if (typeof eventData === 'undefined') {
-                      return;
-                  }
-
-                  var data = eventData.points,
-                      x = data.map(function(d) { return d.x; }),
-                      y = data.map(function(d) { return d.y; }),
+                  var data = fullData.filter((d, i) => start <= i && i < end),
+                      x = data.map(function(d) { return d.Q; }),
+                      y = data.map(function(d) { return d.I; }),
                       fn = function(Q, params) {
                           var I0 = params[0],
                               RG = params[1],
@@ -435,15 +440,13 @@
                           return Math.max(plottedMinY, y);
                       });
 
-                  console.log(eventData);
-
                   console.log("I0 =", fitResults.params[0]);
                   console.log("RG =", fitResults.params[1]);
 
                   trace = { x: plottedX, y: newy, type: 'scatter' };
 
                   Plotly.addTraces(graphDiv, trace);
-              });
+              }
 
               $("#btn-xaxis-linear").on("click", function(eventData) {
                   Plotly.relayout(graphDiv, { 'xaxis.type': 'linear' });
@@ -523,6 +526,17 @@
 
               window.addEventListener('resize', function() {
                   Plotly.Plots.resize(graphDiv);
+              });
+
+              $("#plot_range_slider").slider({
+                  range: true,
+                  min: 0,
+                  max: fullData.length - 1,
+                  values: [0, fullData.length - 1],
+                  slide: function(event, ui) {
+                      console.log(ui.values[0], ui.values[1]);
+                      selectData(ui.values[0], ui.values[1]);
+                  },
               });
 
 
