@@ -171,42 +171,86 @@
       Plotly.d3.csv(filename)
           .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
           .get(function(error, fullData) {
-              function fit(start, end) {
+              var fitMap = d3.map();
+              function fit(start, end, fitOrError) {
                   if (start >= end) {
                       return 0.0;
                   }
 
-                  var data = fullData.filter((d, i) => start <= i && i < end),
-                      Q = data.map(function(d) { return d.Q; }),
-                      I = data.map(function(d) { return d.I; }),
-                      fn = function(Q, params) {
-                          var I0 = params[0],
-                              RG = params[1],
-                              inside = -1.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0) / 3.0;
+                  function fn(Q, params) {
+                      var I0 = params[0],
+                          RG = params[1],
+                          inside = -1.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0) / 3.0;
 
-                          return I0 * Math.exp(inside);
-                      },
-                      tangled = Q.map(function(d, i) { return [d, I[i]]; }),
-                      start = [1.0, 1.0],
-                      min = [-1000.0, -1000.0],
-                      max = [1000.0, 1000.0],
-                      constraints = function(tangled, fn, params) {
-                          var I0 = params[0],
-                              RG = params[1];
-                          return [
-                              I0, // >= 0 because ln(I0) can be taken
-                              RG, // >= 0 because radius/distance is positive
-                          ];
-                      },
-                      fitResults = cobyla.nlFit(tangled, fn,
-                                                start, min, max, constraints);
+                      return I0 * Math.exp(inside);
+                  };
 
-                  return { I0: fitResults.params[0], RG: fitResults.params[1] };
+                  var key = start + ',' + end;
+                  if (fitMap.has(key)) {
+                      var fitResults = fitMap.get(key);
+                  } else {
+                      var data = fullData.filter((d, i) => start <= i && i < end),
+                          Q = data.map(function(d) { return d.Q; }),
+                          I = data.map(function(d) { return d.I; }),
+                          tangled = Q.map(function(d, i) { return [d, I[i]]; }),
+                          start = [1.0, 1.0],
+                          min = [-1000.0, -1000.0],
+                          max = [1000.0, 1000.0],
+                          constraints = function(tangled, fn, params) {
+                              var I0 = params[0],
+                                  RG = params[1];
+                              return [
+                                  I0, // >= 0 because ln(I0) can be taken
+                                  RG, // >= 0 because radius/distance is positive
+                              ];
+                          },
+                          fitResults = cobyla.nlFit(tangled, fn,
+                                                    start, min, max,
+                                                    constraints);
+
+                      fitMap.set(key, fitResults);
+                  }
+
+                  if (fitOrError === 'fit') {
+                      return { I0: fitResults.params[0], RG: fitResults.params[1] };
+                  } else {
+                      return Math.sqrt(fullData.map(function(d) {
+                          return Math.pow(d.I - fn(d.Q, fitResults.params), 2.0);
+                      }).reduce((a, b) => a + b, 0.0));
+                  }
               }
 
               var z = fullData.map(function(_, start) {
                   return fullData.map(function(_, end) {
-                      return Math.abs(fit(start, end).RG);
+                      if (start > end) {
+                          return fit(end, start, 'error');
+                      } else if (start == end) {
+                          return 0.0;
+                      } else {
+                          return fit(start, end, 'fit').RG;
+                      }
+                  });
+              });
+
+              var maxUpperTri = z.reduce(function(prev1, row, start) {
+                  return Math.max(prev1, row.reduce(function(prev2, val, end) {
+                      return start > end ? Math.max(prev2, val) : prev2;
+                  }, -Infinity));
+              }, -Infinity);
+
+              var maxLowerTri = z.reduce(function(prev1, row, start) {
+                  return Math.max(prev1, row.reduce(function(prev2, val, end) {
+                      return start < end ? Math.max(prev2, val) : prev2;
+                  }, -Infinity));
+              }, -Infinity);
+
+              z = z.map(function(row, start) {
+                  return row.map(function(val, end) {
+                      if (start > end) {
+                          return val / maxUpperTri * maxLowerTri;
+                      } else {
+                          return val;
+                      }
                   });
               });
 
