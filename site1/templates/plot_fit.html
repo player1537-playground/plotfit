@@ -62,6 +62,7 @@
                 <li><a href="#" value="Log(Q)">Log(Q)</a></li>
                 <li><a href="#" value="Ln(Q)">Ln(Q)</a></li>
                 <li><a href="#" value="Q^2">Q^2</a></li>
+                <li><a href="#" value="Q^c">Q^c</a></li>
               </ul>
             </div>
           </div>
@@ -80,8 +81,35 @@
                 <li><a href="#" value="Log(I)">Log(I)</a></li>
                 <li><a href="#" value="Ln(I)">Ln(I)</a></li>
                 <li><a href="#" value="1/I">1/I</a></li>
+                <li><a href="#" value="I^a">I^a</a></li>
+                <li><a href="#" value="I*Q^a">I*Q^a</a></li>
+                <li><a href="#" value="I^a*Q^b">I^a*Q^b</a></li>
                 <li><a href="#" value="1/Sqrt(I)">1/Sqrt(I)</a></li>
+                <li><a href="#" value="Ln(I*Q)">Ln(I*Q)</a></li>
+                <li><a href="#" value="Ln(I*Q^2)">Ln(I*Q^2)</a></li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variables: a, b, c -->
+        <div class="form-horizontal">
+          <div class="form-group" style="margin-bottom:0px">
+            <label for="" class="col-md-2 control-label">a</label>
+            <div class="col-md-10">
+              <input type="text" class="form-control" placeholder="0" id="input-variable-a" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0px">
+            <label for="" class="col-md-2 control-label">b</label>
+            <div class="col-md-10">
+              <input type="text" class="form-control" placeholder="0" id="input-variable-b" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0px">
+            <label for="" class="col-md-2 control-label">c</label>
+            <div class="col-md-10">
+              <input type="text" class="form-control" placeholder="0" id="input-variable-c" />
             </div>
           </div>
         </div>
@@ -278,26 +306,41 @@
   (function() {
       var d3 = Plotly.d3,
           xScales = d3.map(),
-          yScales = d3.map();
+          yScales = d3.map(),
+          a = 0.0,
+          b = 0.0,
+          c = 0.0;
 
       xScales.set('Q', Q => Q);
       xScales.set('Log(Q)', Q => Math.log10(Q));
       xScales.set('Ln(Q)', Q => Math.log(Q));
       xScales.set('Q^2', Q => Math.pow(Q, 2.0));
+      xScales.set('Q^c', Q => Math.pow(Q, c));
 
       yScales.set('I', I => I);
       yScales.set('Log(I)', I => Math.log10(I));
       yScales.set('Ln(I)', I => Math.log(I));
       yScales.set('1/I', I => 1.0 / I);
+      yScales.set('I^a', I => Math.pow(I, a));
+      yScales.set('I*Q^a', function(I, Q) {
+          console.log(I, Q);
+          return I * Math.pow(Q, a);
+      });
+
+
+
+      yScales.set('I^a*Q^b', (I, Q) => Math.pow(I, a) * Math.pow(Q, b));
       yScales.set('1/Sqrt(I)', I => 1.0 / Math.sqrt(I));
+      yScales.set('Ln(I*Q)', (I, Q) => Math.log(I * Q));
+      yScales.set('Ln(I*Q^2)', (I, Q) => Math.log(I * Math.pow(Q, 2.0)));
 
       Plotly.d3.csv(filename)
           .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
-          .get(function(error, rows) {
+          .get(function(error, fullData) {
               var graphDiv = $("#plot_container")[0],
-                  fullX = rows.map(function(d) { return d.Q; }),
-                  fullY = rows.map(function(d) { return d.I; }),
-                  fullDev = rows.map(function(d) { return d.dev; }),
+                  fullX = fullData.map(function(d) { return d.Q; }),
+                  fullY = fullData.map(function(d) { return d.I; }),
+                  fullDev = fullData.map(function(d) { return d.dev; }),
                   xScale = xScales.get('Q'),
                   yScale = yScales.get('I'),
                   plottedX,
@@ -306,9 +349,9 @@
                   plottedMinY;
 
               function recalculateData() {
-                  plottedX = fullX.map(Q => xScale(Q));
-                  plottedY = fullY.map(I => yScale(I));
-                  plottedDev = fullDev.map(x => x);
+                  plottedX = fullData.map(d => xScale(d.Q, d.I));
+                  plottedY = fullData.map(d => yScale(d.I, d.Q));
+                  plottedDev = fullData.map(d => 0.0);
                   plottedMinY = d3.min(plottedY);
               }
 
@@ -453,6 +496,22 @@
                   xScale = xScales.get(val);
                   redraw();
               });
+
+              $("#input-variable-a").on('input', function() {
+                  a = +$(this).val();
+                  redraw();
+              });
+
+              $("#input-variable-b").on('input', function() {
+                  b = +$(this).val();
+                  redraw();
+              });
+
+              $("#input-variable-c").on('input', function() {
+                  c = +$(this).val();
+                  redraw();
+              });
+
 
           });
   })();
