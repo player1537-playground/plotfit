@@ -87,4 +87,20 @@ class PlotIqSelectFile(TemplateView):
         context = super(PlotIqSelectFile, self).get_context_data(**kwargs)
         context['filenames'] = ['HSA_test.dat', 'scan1_Iq.txt', 'scan2_Iq.txt']
         return context
-    
+
+class PlotAutoFitSelectFile(TemplateView):
+    template_name = "plot_auto_fit_select_file.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PlotAutoFitSelectFile, self).get_context_data(**kwargs)
+        context['filenames'] = ['HSA_test.dat', 'scan1_Iq.txt', 'scan2_Iq.txt']
+        return context
+
+class PlotAutoFitView(TemplateView):
+    template_name = "plot_auto_fit.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(PlotAutoFitView, self).get_context_data(**kwargs)
+        context['filename'] = 'data/{}'.format(self.kwargs['filename'])
+        return context

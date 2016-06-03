@@ -14,5 +14,8 @@ urlpatterns = [
     url(r'^plot_live/$', views.PlotLiveView.as_view(), name='plot_live'),
     url(r'^plot_live_update/$', views.plot_live_update, name='plot_live_update'),
     url(r'^plotIq_select_file/$', views.PlotIqSelectFile.as_view(), name='plotIq_select_file'),
+    url(r'^plot_auto_fit_select_file/$', views.PlotAutoFitSelectFile.as_view(), name='plot_auto_fit_select_file'),
+    url(r'^plot_auto_fit/(?P<filename>[a-zA-Z0-9_.]+)$', views.PlotAutoFitView.as_view(), name='plot_auto_fit'),
+
 
 ]

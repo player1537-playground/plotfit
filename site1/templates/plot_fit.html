@@ -307,6 +307,8 @@
       var d3 = Plotly.d3,
           xScales = d3.map(),
           yScales = d3.map(),
+          currentXScale = 'Q',
+          currentYScale = 'I',
           a = 0.0,
           b = 0.0,
           c = 0.0;
@@ -322,13 +324,7 @@
       yScales.set('Ln(I)', I => Math.log(I));
       yScales.set('1/I', I => 1.0 / I);
       yScales.set('I^a', I => Math.pow(I, a));
-      yScales.set('I*Q^a', function(I, Q) {
-          console.log(I, Q);
-          return I * Math.pow(Q, a);
-      });
-
-
-
+      yScales.set('I*Q^a', (I, Q) => I * Math.pow(Q, a));
       yScales.set('I^a*Q^b', (I, Q) => Math.pow(I, a) * Math.pow(Q, b));
       yScales.set('1/Sqrt(I)', I => 1.0 / Math.sqrt(I));
       yScales.set('Ln(I*Q)', (I, Q) => Math.log(I * Q));
@@ -342,23 +338,25 @@
                   graphDivD3 = d3.select("#plot_container");
 
               graphDivD3
-//                  .style("width", WIDTH_PERCENT + "%")
-//                  .style("margin-left", (100 - WIDTH_PERCENT) / 2 + '%')
+              //                  .style("width", WIDTH_PERCENT + "%")
+              //                  .style("margin-left", (100 - WIDTH_PERCENT) / 2 + '%')
                   .style('height', HEIGHT_PERCENT + 'vh')
-//                  .style('margin-top', (100 - HEIGHT_PERCENT) / 2 + 'vh');
+              //                  .style('margin-top', (100 - HEIGHT_PERCENT) / 2 + 'vh');
 
               var graphDiv = graphDivD3.node(),
                   fullX = fullData.map(function(d) { return d.Q; }),
                   fullY = fullData.map(function(d) { return d.I; }),
                   fullDev = fullData.map(function(d) { return d.dev; }),
-                  xScale = xScales.get('Q'),
-                  yScale = yScales.get('I'),
+                  xScale,
+                  yScale,
                   plottedX,
                   plottedY,
                   plottedDev,
                   plottedMinY;
 
               function recalculateData() {
+                  xScale = xScales.get(currentXScale);
+                  yScale = yScales.get(currentYScale);
                   plottedX = fullData.map(d => xScale(d.Q, d.I));
                   plottedY = fullData.map(d => yScale(d.I, d.Q));
                   plottedDev = fullData.map(d => 0.0);
@@ -382,8 +380,8 @@
                   },
               }],
                   layout = {
-//                      height: 600,
-//                      width: 600,
+                      //                      height: 600,
+                      //                      width: 600,
                       xaxis: {
                           autorange: true,
                           type: 'linear',
@@ -481,6 +479,7 @@
                   graphDiv.data[0].x = plottedX;
                   graphDiv.data[0].y = plottedY;
 
+                  Plotly.relayout(graphDiv, {'title': currentYScale + ' vs ' + currentXScale });
                   Plotly.redraw(graphDiv);
               }
 
@@ -492,7 +491,7 @@
                   btn.html($(this).text() + ' <span class="caret"></span>');
                   btn.val(val);
 
-                  yScale = yScales.get(val);
+                  currentYScale = val;
                   redraw();
               });
 
@@ -503,7 +502,7 @@
                   btn.html($(this).text() + ' <span class="caret"></span>');
                   btn.val(val);
 
-                  xScale = xScales.get(val);
+                  currentXScale = val;
                   redraw();
               });
 
@@ -529,6 +528,7 @@
 
           });
   })();
+
 
 </script>
 {% endblock %}
