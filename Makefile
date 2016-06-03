@@ -18,6 +18,4 @@ collectstatic:
 
 .PHONY: depend
 depend:
-	rm -rf venv
-	$(PYTHON) -m virtualenv venv
-	source venv/bin/activate && $(PYTHON) -m pip install --user -r requirements.txt
+	$(PYTHON) -m pip install --user -r requirements.txt
