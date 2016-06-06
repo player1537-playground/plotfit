@@ -17,6 +17,7 @@
 <div class="container">
   <div class="row" style="border: 1px solid black">
     <div id="plot_scale" class="col-md-3 col-sm-4">
+      <h3>Display Settings</h3>
       <div class="btn-group-vertical">
 
         <!-- X select: linear/log -->
@@ -88,6 +89,7 @@
                 <li><a href="#" value="1/Sqrt(I)">1/Sqrt(I)</a></li>
                 <li><a href="#" value="Ln(I*Q)">Ln(I*Q)</a></li>
                 <li><a href="#" value="Ln(I*Q^2)">Ln(I*Q^2)</a></li>
+                <li><a href="#" value="Ln(I*Q+B)">Ln(I*Q+B)</a></li>
               </ul>
             </div>
           </div>
@@ -116,22 +118,9 @@
         </div>
 
       </div>
-    </div>
 
-    <div class="col-md-7 col-sm-6">
-      <!-- The actual plot contents -->
-      <div class="row">
-        <div id="plot_container" class="col-xs-12"></div>
-      </div>
-      <div class="row">
-        <div id="plot_range_slider" class="col-xs-12"></div>
-      </div>
-    </div>
-
-    <!-- Controls the fitting functions -->
-    <div id="plot_calc" class="col-md-2 col-sm-2">
+      <h3>Fitting Settings</h3>
       <div class="btn-group-vertical">
-
         <div class="btn-group">
           <div class="btn-group btn-group-justified">
             <div class="btn-group">
@@ -159,36 +148,23 @@
         <div class="btn-group">
           <div class="btn-group btn-group-justified">
             <div class="btn-group">
-              <button type="button" class="btn btn-default">Parod</button>
+              <button type="button" class="btn btn-default">Porod</button>
             </div>
           </div>
         </div>
 
       </div>
-    </div>
-  </div>
-</div>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm-12 col-sm-12">
-      <br/>
     </div>
-  </div>
-</div>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm-12">
-      <pre>
-        var myDiv = $('.plotly-graph-div')[0];
-        myDiv.on('plotly_selected', function(eventData) {
-        console.log(eventData.points);
-        for (var idx = 0; idx < eventData.points.length; idx++) {
-                                console.log(eventData.points[idx]);
-                                };
-                                });
-                                </pre>
+    <div class="col-md-9 col-sm-8">
+      <!-- The actual plot contents -->
+      <div class="row">
+        <div id="plot_container" class="col-xs-12"></div>
+      </div>
+      <div class="row">
+        <div id="plot_range_slider" class="col-xs-12"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -199,354 +175,8 @@
 <script type="text/javascript">
     var filename = "{% static filename %}";
 </script>
-<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
-<script type="text/javascript">
-
-  //
-  // Fit the provided data to a nonlinear curve
-  //
-
-  cobyla = (function(my) {
-      "use strict"
-      // adds nlFit to cobyla, if it exists
-
-      my.nlFit = function nlFit(data, fitFn, start, min, max, constraints, solverParams) {
-          // nlFit will minimize the sum of squared differences (y1^2-y2^2) between
-          // the data points (x,y1) and the fitFn (x,y2).
-          //
-          // Returns an object {params: [the best-fit parameters], obj: sum sqr diff, status: status}
-          // where status 0 = normal, 1 = max iterations reached, 2 = diverging rounding errors
-          //
-          // eg.
-          //     data = [[0,0.01], [5, 0.1], [100,0.5], [500, 0.9], [1000,0.99]];
-          //     cobyla.nlFit(data, weibullCDF, [1, 5, 1], [0,0,0], null, cobyla.constrainAsCDF, {maxFun: 5000});
-          //
-          // data should be of the form [[x1,y1], [x2,y2], ...]
-          // eg. [[0,0.01], [5, 0.1], [100,0.5], [500, 0.9], [1000,0.99]]
-          // fitFn should be a function of x and an array of parameters
-          //
-          // start, min, max are arrays of values for the parameters
-          // start is required
-          // min, max are ignored if falsy
-          //
-          // contraints (optional) is a function of the data, fitFn & the parameters
-          // which returns an array of inequalities (>0),
-          // eg. if params=[a,b,c] then constraints(params) might return
-          //     [0,1,1,2,5,10]
-          //     each of which will passed into the solver as constraints >0
-          //
-          // solverParams is an object with any of the keys rhoStart, rhoEnd, iprint, maxFun
-          // if any of the keys are missing they default to 5, 1e-6, 0 and 5000 respectively
-
-          var x = start;
-          var numConstraints = 0;
-          if (min) { numConstraints += min.length; }
-          if (max) { numConstraints += max.length; }
-          if (constraints) { numConstraints += constraints(data, fitFn, x).length; }
-          if (!solverParams) { solverParams = {}; }
-
-          var defaultSPs = { rhoStart: 5.0, rhoEnd: 1.0e-6, iprint: 0, maxFun: 3500 };
-
-          function obj(n, m, x, con) {
-              // objective function
-              // n is the number of variables to solve for
-              // m is the number of constraints
-              // x is an array of the variables
-              // con is an array of the constraints
-
-              var sumSqr = 0;
-              var c = 0;
-              var i, yData, yFit, cx;
-
-              for (i=0; i<data.length; i++) {
-                  yData = data[i][1];
-                  yFit  = fitFn(data[i][0], x);
-                  sumSqr += (yData - yFit) * (yData - yFit);
-              }
-              if (min) {
-                  for (i=0; i<min.length; i++) { con[c++] = x[i] - min[i]; } // x - min > 0, ie. x > min
-              }
-              if (max) {
-                  for (i=0; i<max.length; i++) { con[c++] = max[i] - x[i]; } // max - x > 0, ie. x < max
-              }
-              if (constraints) {
-                  cx = constraints(data, fitFn, x);
-                  for (i=0; i<cx.length; i++) { con[c++] = cx[i]; }
-              }
-              return sumSqr;
-          }
-
-          var status = cobyla.findMinimum(obj,
-                                          x.length,
-                                          numConstraints,
-                                          x,
-                                          typeof solverParams.rhoStart==="undefined" ? defaultSPs.rhoStart : solverParams.rhoStart,
-                                          typeof solverParams.rhoEnd==="undefined" ? defaultSPs.rhoEnd : solverParams.rhoEnd,
-                                          typeof solverParams.iprint==="undefined" ? defaultSPs.iprint : solverParams.iprint,
-                                          typeof solverParams.maxFun==="undefined" ? defaultSPs.maxFun : solverParams.maxFun );
-
-          return {params: x, obj: obj(x.length, numConstraints, x, new Array(numConstraints)), status: status};
-      }
-
-      //
-      // sample constraints function
-      //
-
-      my.constrainAsCDF = function (data, fitFn, params) {
-          // Requires the fit function to be between 0 and 1 at each data point
-          var constraints = [],
-              yFit;
-          for (var i=0; i<data.length; i++) {
-              yFit = fitFn(data[i][0], params);
-              constraints.push(yFit);  // require yFit > 0
-              constraints.push(1-yFit);  // require 1 - yFit > 0, ie. yFit < 1
-          }
-          return constraints;
-      }
-
-      return my;
-
-  }(typeof cobyla==="undefined" ? {} : cobyla));
-</script>
-<script type="text/javascript">
-
-  (function() {
-      var d3 = Plotly.d3,
-          xScales = d3.map(),
-          yScales = d3.map(),
-          currentXScale = 'Q',
-          currentYScale = 'I',
-          a = 0.0,
-          b = 0.0,
-          c = 0.0;
-
-      xScales.set('Q', Q => Q);
-      xScales.set('Log(Q)', Q => Math.log10(Q));
-      xScales.set('Ln(Q)', Q => Math.log(Q));
-      xScales.set('Q^2', Q => Math.pow(Q, 2.0));
-      xScales.set('Q^c', Q => Math.pow(Q, c));
-
-      yScales.set('I', I => I);
-      yScales.set('Log(I)', I => Math.log10(I));
-      yScales.set('Ln(I)', I => Math.log(I));
-      yScales.set('1/I', I => 1.0 / I);
-      yScales.set('I^a', I => Math.pow(I, a));
-      yScales.set('I*Q^a', (I, Q) => I * Math.pow(Q, a));
-      yScales.set('I^a*Q^b', (I, Q) => Math.pow(I, a) * Math.pow(Q, b));
-      yScales.set('1/Sqrt(I)', I => 1.0 / Math.sqrt(I));
-      yScales.set('Ln(I*Q)', (I, Q) => Math.log(I * Q));
-      yScales.set('Ln(I*Q^2)', (I, Q) => Math.log(I * Math.pow(Q, 2.0)));
-
-      Plotly.d3.csv(filename)
-          .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
-          .get(function(error, fullData) {
-              var WIDTH_PERCENT = 60,
-                  HEIGHT_PERCENT = 80,
-                  graphDivD3 = d3.select("#plot_container");
-
-              graphDivD3
-              //                  .style("width", WIDTH_PERCENT + "%")
-              //                  .style("margin-left", (100 - WIDTH_PERCENT) / 2 + '%')
-                  .style('height', HEIGHT_PERCENT + 'vh')
-              //                  .style('margin-top', (100 - HEIGHT_PERCENT) / 2 + 'vh');
-
-              var graphDiv = graphDivD3.node(),
-                  fullX = fullData.map(function(d) { return d.Q; }),
-                  fullY = fullData.map(function(d) { return d.I; }),
-                  fullDev = fullData.map(function(d) { return d.dev; }),
-                  xScale,
-                  yScale,
-                  plottedX,
-                  plottedY,
-                  plottedDev,
-                  plottedMinY;
-
-              function recalculateData() {
-                  xScale = xScales.get(currentXScale);
-                  yScale = yScales.get(currentYScale);
-                  plottedX = fullData.map(d => xScale(d.Q, d.I));
-                  plottedY = fullData.map(d => yScale(d.I, d.Q));
-                  plottedDev = fullData.map(d => 0.0);
-                  plottedMinY = d3.min(plottedY);
-              }
-
-              recalculateData();
-
-              var data = [{
-                  name: filename,
-                  x: plottedX,
-                  y: plottedY,
-                  mode: "lines+markers",
-                  error_y: {
-                      type: 'data',
-                      visible: true,
-                      array: plottedDev,
-                      thickness: 1.5,
-                      width: 3,
-                      opacity: 0.5,
-                  },
-              }],
-                  layout = {
-                      //                      height: 600,
-                      //                      width: 600,
-                      xaxis: {
-                          autorange: true,
-                          type: 'linear',
-                      },
-                      yaxis: {
-                          autorange: true,
-                          type: 'linear',
-                      },
-                      title: 'I_q chart',
-                      showlegend: true,
-                      legend: {
-                          orientation: 'h',
-                      },
-                  },
-                  trace = null;
-
-              Plotly.plot(graphDiv, data, layout);
-
-              function selectData(start, end) {
-                  if (trace !== null) {
-                      Plotly.deleteTraces(graphDiv, -1);
-                      trace = null;
-                  }
-
-                  var data = fullData.filter((d, i) => start <= i && i < end),
-                      x = data.map(function(d) { return d.Q; }),
-                      y = data.map(function(d) { return d.I; }),
-                      fn = function(Q, params) {
-                          var I0 = params[0],
-                              RG = params[1],
-                              inside = -1.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0) / 3.0;
-
-                          return I0 * Math.exp(inside);
-                      },
-                      tangled = x.map(function(d, i) { return [d, y[i]]; }),
-                      start = [1.0, 1.0],
-                      min = [-1000.0, -1000.0],
-                      max = [1000.0, 1000.0],
-                      constraints = function(tangled, fn, params) {
-                          var I0 = params[0],
-                              RG = params[1];
-                          return [
-                              I0, // >= 0 because ln(I0) can be taken
-                              RG, // >= 0 because radius/distance is positive
-                          ];
-                      },
-                      fitResults = cobyla.nlFit(tangled, fn,
-                                                start, min, max, constraints),
-                      newy = fullX.map(function(Q) {
-                          var y = yScale(fn(Q, fitResults.params));
-                          return Math.max(plottedMinY, y);
-                      });
-
-                  console.log("I0 =", fitResults.params[0]);
-                  console.log("RG =", fitResults.params[1]);
-
-                  trace = { x: plottedX, y: newy, type: 'scatter' };
-
-                  Plotly.addTraces(graphDiv, trace);
-              }
-
-              $("#btn-xaxis-linear").on("click", function(eventData) {
-                  Plotly.relayout(graphDiv, { 'xaxis.type': 'linear' });
-                  $(".btn-xaxis").removeClass("active");
-                  $(this).addClass("active");
-              });
-
-              $("#btn-xaxis-log").on("click", function(eventData) {
-                  Plotly.relayout(graphDiv, { 'xaxis.type': 'log' });
-                  $(".btn-xaxis").removeClass("active");
-                  $(this).addClass("active");
-              });
-
-              $("#btn-yaxis-linear").on("click", function(eventData) {
-                  Plotly.relayout(graphDiv, { 'yaxis.type': 'linear' });
-                  $(".btn-yaxis").removeClass("active");
-                  $(this).addClass("active");
-              });
-
-              $("#btn-yaxis-log").on("click", function(eventData) {
-                  Plotly.relayout(graphDiv, { 'yaxis.type': 'log' });
-                  $(".btn-yaxis").removeClass("active");
-                  $(this).addClass("active");
-              });
-
-              function redraw() {
-                  recalculateData();
-                  if (trace !== null) {
-                      Plotly.deleteTraces(graphDiv, -1);
-                      trace = null;
-                  }
-
-                  graphDiv.data[0].x = plottedX;
-                  graphDiv.data[0].y = plottedY;
-
-                  Plotly.relayout(graphDiv, {'title': currentYScale + ' vs ' + currentXScale });
-                  Plotly.redraw(graphDiv);
-              }
-
-
-              $("#dropdown-yaxis-preprocess li a").on("click", function() {
-                  var btn = $(this).parents(".dropdown").find(".btn"),
-                      val = $(this).attr('value');
-
-                  btn.html($(this).text() + ' <span class="caret"></span>');
-                  btn.val(val);
-
-                  currentYScale = val;
-                  redraw();
-              });
-
-              $("#dropdown-xaxis-preprocess li a").on("click", function() {
-                  var btn = $(this).parents(".dropdown").find(".btn"),
-                      val = $(this).attr('value');
-
-                  btn.html($(this).text() + ' <span class="caret"></span>');
-                  btn.val(val);
-
-                  currentXScale = val;
-                  redraw();
-              });
-
-              $("#input-variable-a").on('input', function() {
-                  a = +$(this).val();
-                  redraw();
-              });
-
-              $("#input-variable-b").on('input', function() {
-                  b = +$(this).val();
-                  redraw();
-              });
-
-              $("#input-variable-c").on('input', function() {
-                  c = +$(this).val();
-                  redraw();
-              });
-
-              window.addEventListener('resize', function() {
-                  Plotly.Plots.resize(graphDiv);
-              });
-
-              $("#plot_range_slider").slider({
-                  range: true,
-                  min: 0,
-                  max: fullData.length - 1,
-                  values: [0, fullData.length - 1],
-                  slide: function(event, ui) {
-                      console.log(ui.values[0], ui.values[1]);
-                      selectData(ui.values[0], ui.values[1]);
-                  },
-              });
-
-
-          });
-  })();
-
-
-</script>
+<script type="text/javascript" src="{% static 'app1/CobylaLSFit.js' %}"></script>
+<script type="text/javascript" src="{% static 'app1/plot_fit.js' %}"></script>
 {% endblock %}
