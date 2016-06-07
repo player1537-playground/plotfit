@@ -51,27 +51,27 @@
         </div>
 
         <!-- X Select: all the options -->
-        <div class="btn-group">
-          <div class="btn-group btn-group-justified">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default" disabled>X Data</button>
-            </div>
-            <div id="dropdown-xaxis-preprocess" class="btn-group dropdown">
-              <button type="button" class="btn btn-default dropdown-toggle"
-                      data-toggle="dropdown">Dropdown<span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" value="Q">Q</a></li>
-                <li><a href="#" value="log(Q)">log(Q)</a></li>
-                <li><a href="#" value="ln(Q)">ln(Q)</a></li>
-                <li><a href="#" value="Q^2">Q^2</a></li>
-                <li><a href="#" value="Q^c">Q^c</a></li>
-              </ul>
-            </div>
+        <div id="xaxis-preprocess" class="input-group">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown">
+              X = <span class="caret" />
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" value="Q">Q</a></li>
+              <li><a href="#" value="log(Q)">log(Q)</a></li>
+              <li><a href="#" value="ln(Q)">ln(Q)</a></li>
+              <li><a href="#" value="Q^2">Q^2</a></li>
+              <li><a href="#" value="Q^c">Q^c</a></li>
+            </ul>
           </div>
+          <input type="text" class="form-control pull-left" />
         </div>
 
+        <div id="xaxis-variables" class="form-horizontal"></div>
+
         <!-- Y Select: all the options -->
-        <div id = "yaxis-preprocess" class="input-group">
+        <div id="yaxis-preprocess" class="input-group">
           <div class="input-group-btn">
             <button type="button" class="btn btn-default dropdown-toggle"
                     data-toggle="dropdown">
@@ -95,30 +95,6 @@
         </div>
 
         <div id="yaxis-variables" class="form-horizontal"></div>
-
-        <!-- Variables: a, b, c -->
-        <div class="form-horizontal">
-          <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-sm-2 col-xs-2 control-label">a</label>
-            <div class="col-sm-10 col-xs-10">
-              <input type="number" class="form-control" placeholder="0" id="input-variable-a" />
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-sm-2 col-xs-2 control-label">b</label>
-            <div class="col-sm-10 col-xs-10">
-              <input type="number" class="form-control" placeholder="0" id="input-variable-b" />
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:0px">
-            <label for="" class="col-sm-2 col-xs-2 control-label">c</label>
-            <div class="col-sm-10 col-xs-10">
-              <input type="number" class="form-control" placeholder="0" id="input-variable-c" />
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <h3>Fitting Settings</h3>
@@ -156,6 +132,9 @@
         </div>
 
       </div>
+
+      <h3>Fitting Parameters</h3>
+      <div id="fitting-parameters"></div>
 
     </div>
 

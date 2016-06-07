@@ -1,53 +1,14 @@
-plotfit = (function(my, d3) {
-  my.xScale = function xScale() {
-    var scaleName = 'Q',
-        c = 0.0,
-        xScales = d3.map(),
-        scale;
-
-    xScales.set('Q'      , Q => Q);
-    xScales.set('log(Q)' , Q => Math.log10(Q));
-    xScales.set('ln(Q)'  , Q => Math.log(Q));
-    xScales.set('Q^2'    , Q => Math.pow(Q, 2.0));
-    xScales.set('Q^c'    , Q => Math.pow(Q, c));
-
-    function my() {
-      return scale.apply(scale, arguments);
-    }
-
-    my.scaleName = function(_) {
-      if (!arguments.length) return scaleName;
-      scaleName = _;
-      scale = xScales.get(scaleName);
-      return my;
-    };
-
-    my.c = function(_) {
-      if (!arguments.length) return c;
-      c = _;
-      return my;
-    };
-
-    my.scaleName(scaleName);
-
-    return my;
-  };
-
-  return my;
-
-})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
-
 plotfit = (function(my, d3, math) {
-  my.yScale = function yScale() {
+  my.scale = function yScale() {
     var scope = d3.map(),
         yScales = d3.map(),
-        scaleExpression = 'I',
         variables = [],
+        scaleExpression,
         scaleCompiled;
 
-    function my(I, Q) {
-      scope.set('I', I);
+    function my(Q, I) {
       scope.set('Q', Q);
+      scope.set('I', I);
 
       var newScope = {};
       scope.entries().forEach(function(d) {
@@ -72,7 +33,6 @@ plotfit = (function(my, d3, math) {
         }
       });
       scaleCompiled = math.compile(_);
-      console.log(variables, scope);
 
       return my;
     };
@@ -100,8 +60,6 @@ plotfit = (function(my, d3, math) {
       return my;
     };
 
-    my.scaleExpression(my.scaleExpression());
-
     return my;
   };
 
@@ -113,6 +71,7 @@ plotfit = (function(my, d3) {
   var fittings = d3.map();
 
   fittings.set('Guinier', {
+    firstRun: true,
     start: [1.0, 1.0],
     min: [-1000.0, -1000.0],
     max: [1000.0, 1000.0],
@@ -142,6 +101,7 @@ plotfit = (function(my, d3) {
   });
 
   fittings.set('Porod', {
+    firstRun: true,
     start: [1.0, 1.0, 1.0],
     min: [-1000.0, -1000.0, -10.0],
     max: [1000.0, 1000.0, 10.0],
@@ -172,9 +132,9 @@ plotfit = (function(my, d3) {
 
   my.fitting = function fitting() {
     var fittingName = "Guinier",
-        fitting,
         x = function(d) { return d.x; },
-        y = function(d) { return d.y; };
+        y = function(d) { return d.y; },
+        fitting;
 
     function my(fullData, start, end) {
       var dataInRange = fullData.filter((d, i) => start <= i && i < end),
@@ -183,14 +143,19 @@ plotfit = (function(my, d3) {
           tangledData = d3.zip(xData, yData),
           fitResults;
 
-      fitResults = cobyla.nlFit(
-        tangledData, // data to fit against
-        fitting.evaluate, // function to fit with
-        fitting.start, // starting values for this function
-        fitting.min, // minimum values each parameter can take
-        fitting.max, // maximum values each parameter can take
-        fitting.constraints // inequality constraints on parameters
-      );
+
+      for (var i=0; i == 0 || fitting.firstRun && i<4; ++i) {
+        fitResults = cobyla.nlFit(
+          tangledData, // data to fit against
+          fitting.evaluate, // function to fit with
+          fitting.start, // starting values for this function
+          fitting.min, // minimum values each parameter can take
+          fitting.max, // maximum values each parameter can take
+          fitting.constraints // inequality constraints on parameters
+        );
+      }
+
+      fitting.firstRun = false;
 
       var fn = fitting.evaluate,
           params = fitResults.params;
@@ -240,8 +205,8 @@ plotfit = (function(my, Plotly, d3) {
         x = function(d) { return d.x; },
         y = function(d) { return d.y; },
         dev = function(d) { return d.dev; },
-        xScale = function(d) { return d; },
-        yScale = function(d) { return d; },
+        xScale = function(X, Y) { return X; },
+        yScale = function(X, Y) { return Y; },
         name = "PlotFit Data",
         title = "PlotFit Chart",
         heightPercent = 80,
@@ -254,9 +219,10 @@ plotfit = (function(my, Plotly, d3) {
       selection.each(function(fullData) {
         var fullX = fullData.map(x),
             fullY = fullData.map(y),
-            plottedX = fullX.map(xScale),
-            plottedY = fullY.map(yScale),
             fullDev = fullData.map(dev),
+            tangled = d3.zip(fullX, fullY),
+            plottedX = tangled.map(d => xScale.apply(xScale, d)),
+            plottedY = tangled.map(d => yScale.apply(yScale, d)),
             fittedY = null,
             trace = null,
             data;
@@ -277,7 +243,7 @@ plotfit = (function(my, Plotly, d3) {
         };
 
         if (fittedFunction !== null) {
-          fittedY = fullX.map(fittedFunction).map(yScale);
+          fittedY = tangled.map(d => yScale(d[0], fittedFunction(d[0])));
 
           trace = {
             x: plottedX,
@@ -434,22 +400,21 @@ plotfit = (function(my, Plotly, d3) {
     .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
     .get(function(error, fullData) {
       var plotContainer = d3.select("#plot_container"),
-          xScale = plotfit.xScale(),
-          yScale = plotfit.yScale(),
+          xScale = plotfit.scale().scaleExpression('Q'),
+          yScale = plotfit.scale().scaleExpression('I'),
           fitting = plotfit.fitting()
             .x(d => d.Q)
             .y(d => d.I),
-          fittedFunction = fitting(fullData, 0, fullData.length),
           chart = plotfit.chart()
             .x(d => d.Q)
             .y(d => d.I)
             .dev(d => d.dev)
             .heightPercent(80)
             .xScale(xScale)
-            .yScale(yScale);
+            .yScale(yScale),
+          fittedFunction;
 
-      redraw();
-
+      selectData(0, fullData.length);
 
       $("#btn-xaxis-linear").on("click", function(eventData) {
         chart.xAxislogOrLinear('linear');
@@ -489,34 +454,21 @@ plotfit = (function(my, Plotly, d3) {
       $("#yaxis-preprocess input").on('input', function() {
         var val = $(this).val();
 
-        console.log(val);
         yScale.scaleExpression($(this).val());
         redraw();
       });
 
-      $("#dropdown-xaxis-preprocess li a").on("click", function() {
-        var btn = $(this).parents(".dropdown").find(".btn"),
-            val = $(this).attr('value');
+      $("#xaxis-preprocess ul li a").on("click", function() {
+        var val = $(this).attr('value');
 
-        btn.html($(this).text() + ' <span class="caret"></span>');
-        btn.val(val);
-
-        xScale.scaleName(val);
-        redraw();
+        $("#xaxis-preprocess input").val(val);
+        $("#xaxis-preprocess input").trigger('input');
       });
 
-      $("#input-variable-a").on('input', function() {
-        yScale.a(+$(this).val());
-        redraw();
-       });
+      $("#xaxis-preprocess input").on('input', function() {
+        var val = $(this).val();
 
-      $("#input-variable-b").on('input', function() {
-        yScale.b(+$(this).val());
-        redraw();
-      });
-
-      $("#input-variable-c").on('input', function() {
-        xScale.c(+$(this).val());
+        xScale.scaleExpression($(this).val());
         redraw();
       });
 
@@ -530,14 +482,13 @@ plotfit = (function(my, Plotly, d3) {
         max: fullData.length,
         values: [0, fullData.length],
         slide: function(event, ui) {
-          console.log(ui.values[0], ui.values[1]);
           selectData(ui.values[0], ui.values[1]);
         },
       });
 
       $("#fitting-guinier").on('click', function() {
-        $("#dropdown-yaxis-preprocess li a[value='I']").trigger('click');
-        $("#dropdown-xaxis-preprocess li a[value='Q']").trigger('click');
+        $("#yaxis-preprocess ul li a[value='I']").trigger('click');
+        $("#xaxis-preprocess ul li a[value='Q']").trigger('click');
         $("#btn-yaxis-log").trigger('click');
         $("#btn-xaxis-log").trigger('click');
         fitting.fittingName('Guinier');
@@ -555,12 +506,10 @@ plotfit = (function(my, Plotly, d3) {
       });
 
       $("#fitting-porod").on('click', function() {
-        $("#dropdown-yaxis-preprocess li a[value='I*Q^a']").trigger('click');
-        $("#dropdown-xaxis-preprocess li a[value='Q']").trigger('click');
+        $("#yaxis-preprocess input").val('I*Q').trigger('input');
+        $("#xaxis-preprocess input").val('Q').trigger('click');
         $("#btn-yaxis-log").trigger('click');
         $("#btn-xaxis-log").trigger('click');
-        $("#input-variable-a").val(1);
-        $("#input-variable-a").trigger('input');
         fitting.fittingName('Porod');
         selectData(0, fullData.length);
       });
@@ -570,11 +519,90 @@ plotfit = (function(my, Plotly, d3) {
           .fittedFunction(fittedFunction)
           .fittedLegendName(fitting.fittingName());
 
-        var scope = yScale.scope().entries();
+        var yScope = yScale.scope().entries();
 
         var yVars = d3.select("#yaxis-variables");
 
-        var groups = yVars.selectAll('.form-group').data(scope);
+        var yGroups = yVars.selectAll('.form-group').data(yScope);
+        yGroups.enter().append('div')
+          .attr('class', 'form-group')
+          .style('margin-bottom', '0px');
+        yGroups.exit().remove();
+
+        var yLabels = yGroups.selectAll('label').data(d => [d]);
+        yLabels.enter().append('label')
+          .attr("class", "col-sm-6 col-xs-6 control-label text-right");
+        yLabels.exit().remove();
+        yLabels
+          .text(d => d.key);
+
+        var yWrappers = yGroups.selectAll('div').data(d => [d]);
+        yWrappers.enter().append('div')
+          .attr('class', 'col-sm-6 col-xs-6');
+        yWrappers.exit().remove();
+
+        var yInputs = yWrappers.selectAll('input').data(d => [d]);
+        yInputs.enter().append('input')
+          .attr('class', 'form-control')
+          .attr('type', 'text')
+          .attr('placeholder', '0')
+          .attr('name', d => d.key);
+        yInputs.exit().remove();
+        yInputs
+          .on('input', function(d) {
+            yScale.updateVariable(d.key, this.value);
+            redraw();
+          });
+
+        var xScope = xScale.scope().entries();
+
+        var xVars = d3.select("#xaxis-variables");
+
+        var xGroups = xVars.selectAll('.form-group').data(xScope);
+        xGroups.enter().append('div')
+          .attr('class', 'form-group')
+          .style('margin-bottom', '0px');
+        xGroups.exit().remove();
+
+        var xLabels = xGroups.selectAll('label').data(d => [d]);
+        xLabels.enter().append('label')
+          .attr("class", "col-sm-6 col-xs-6 control-label text-right");
+        xLabels.exit().remove();
+        xLabels
+          .text(d => d.key);
+
+        var xWrappers = xGroups.selectAll('div').data(d => [d]);
+        xWrappers.enter().append('div')
+          .attr('class', 'col-sm-6 col-xs-6');
+        xWrappers.exit().remove();
+
+        var xInputs = xWrappers.selectAll('input').data(d => [d]);
+        xInputs.enter().append('input')
+          .attr('class', 'form-control')
+          .attr('type', 'text')
+          .attr('placeholder', '0');
+        xInputs.exit().remove();
+        xInputs
+          .on('input', function(d) {
+            xScale.updateVariable(d.key, this.value);
+            redraw();
+          });
+
+        plotContainer.data([fullData])
+          .call(chart);
+      }
+
+      function selectData(start, end) {
+        fittedFunction = fitting(fullData, start, end);
+        chart.fittedFunction(fittedFunction);
+
+        var params = fittedFunction.params;
+
+        console.log(params);
+
+        var parent = d3.select("#fitting-parameters");
+
+        var groups = parent.selectAll('.form-group').data(params);
         groups.enter().append('div')
           .attr('class', 'form-group')
           .style('margin-bottom', '0px');
@@ -585,7 +613,7 @@ plotfit = (function(my, Plotly, d3) {
           .attr("class", "col-sm-6 col-xs-6 control-label text-right");
         labels.exit().remove();
         labels
-          .text(d => d.key);
+          .text(d => d.prettyName);
 
         var wrappers = groups.selectAll('div').data(d => [d]);
         wrappers.enter().append('div')
@@ -597,22 +625,15 @@ plotfit = (function(my, Plotly, d3) {
           .attr('class', 'form-control')
           .attr('type', 'text')
           .attr('placeholder', '0')
-          .attr('value', d => d.value);
-
+          .attr('name', d => d.name);
         inputs.exit().remove();
         inputs
+          .attr('value', d => d.value.toString().substring(0, 5))
           .on('input', function(d) {
             yScale.updateVariable(d.key, this.value);
             redraw();
           });
 
-        plotContainer.data([fullData])
-          .call(chart);
-      }
-
-      function selectData(start, end) {
-        fittedFunction = fitting(fullData, start, end);
-        chart.fittedFunction(fittedFunction);
 
         fittedFunction.params.map(function(d) {
           console.log(d.prettyName, "=", d.value);
