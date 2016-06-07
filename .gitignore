@@ -65,4 +65,5 @@ site1/static/
 *~
 
 # Virtual environment
-venv/IPTS-15041.tar.gz
+venv/
+IPTS-15041.tar.gz

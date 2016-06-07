@@ -18,7 +18,7 @@ collectstatic:
 
 .PHONY: depend
 depend:
-	$(PYTHON) -m pip install --user -r requirements.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 
 raw/IPTS-15041/.INTERMEDIATE: IPTS-15041.tar.gz
