@@ -487,7 +487,7 @@ plotfit = (function(my, Plotly, d3) {
       $("#input-variable-a").on('input', function() {
         yScale.a(+$(this).val());
         redraw();
-      });
+       });
 
       $("#input-variable-b").on('input', function() {
         yScale.b(+$(this).val());
@@ -506,12 +506,42 @@ plotfit = (function(my, Plotly, d3) {
       $("#plot_range_slider").slider({
         range: true,
         min: 0,
-        max: fullData.length - 1,
-        values: [0, fullData.length - 1],
+        max: fullData.length,
+        values: [0, fullData.length],
         slide: function(event, ui) {
           console.log(ui.values[0], ui.values[1]);
           selectData(ui.values[0], ui.values[1]);
         },
+      });
+
+      $("#fitting-guinier").on('click', function() {
+        $("#dropdown-yaxis-preprocess li a[value='I']").trigger('click');
+        $("#dropdown-xaxis-preprocess li a[value='Q']").trigger('click');
+        $("#btn-yaxis-log").trigger('click');
+        $("#btn-xaxis-log").trigger('click');
+        fitting.fittingName('Guinier');
+        selectData(0, fullData.length);
+      });
+
+      $("#fitting-kratky").on('click', function() {
+        fitting.fittingName('Kratky');
+        selectData(0, fullData.length);
+      });
+
+      $("#fitting-zimm").on('click', function() {
+        fitting.fittingName('Zimm');
+        selectData(0, fullData.length);
+      });
+
+      $("#fitting-porod").on('click', function() {
+        $("#dropdown-yaxis-preprocess li a[value='I*Q^a']").trigger('click');
+        $("#dropdown-xaxis-preprocess li a[value='Q']").trigger('click');
+        $("#btn-yaxis-log").trigger('click');
+        $("#btn-xaxis-log").trigger('click');
+        $("#input-variable-a").val(1);
+        $("#input-variable-a").trigger('input');
+        fitting.fittingName('Porod');
+        selectData(0, fullData.length);
       });
 
       function redraw() {
