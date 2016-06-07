@@ -23,9 +23,20 @@ python manage.py  runserver
 cd site1/
 ./manage.py makemigrations
 ./manage.py migrate
+make site1/app1/static/app1/data/.INTERMEDIATE
 ./manage.py collectstatic
 ./manage.py runserver
 ```
+
+Alternatively, you can use this command to both create the data files and run
+the server.
+
+```bash
+make
+```
+
+Note: Make sure you have the right data located in the root directory named
+"IPTS-15041.tar.gz".
 
 Go to:
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
