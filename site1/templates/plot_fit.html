@@ -30,7 +30,7 @@
               <button type="button" id="btn-xaxis-linear" class="btn-xaxis btn btn-default active" data-type="linear">Linear</button>
             </div>
             <div class="btn-group">
-              <button type="button" id="btn-xaxis-log" class="btn-xaxis btn btn-default" data-type="log">Log</button>
+              <button type="button" id="btn-xaxis-log" class="btn-xaxis btn btn-default" data-type="log">log</button>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@
               <button type="button" id="btn-yaxis-linear" class="btn-yaxis btn btn-default active">Linear</button>
             </div>
             <div class="btn-group">
-              <button type="button" id="btn-yaxis-log" class="btn-yaxis btn btn-default">Log</button>
+              <button type="button" id="btn-yaxis-log" class="btn-yaxis btn btn-default">log</button>
             </div>
           </div>
         </div>
@@ -61,8 +61,8 @@
                       data-toggle="dropdown">Dropdown<span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li><a href="#" value="Q">Q</a></li>
-                <li><a href="#" value="Log(Q)">Log(Q)</a></li>
-                <li><a href="#" value="Ln(Q)">Ln(Q)</a></li>
+                <li><a href="#" value="log(Q)">log(Q)</a></li>
+                <li><a href="#" value="ln(Q)">ln(Q)</a></li>
                 <li><a href="#" value="Q^2">Q^2</a></li>
                 <li><a href="#" value="Q^c">Q^c</a></li>
               </ul>
@@ -71,29 +71,30 @@
         </div>
 
         <!-- Y Select: all the options -->
-        <div class="btn-group">
-          <div class="btn-group btn-group-justified">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default" disabled>Y Data</button>
-            </div>
-            <div id="dropdown-yaxis-preprocess" class="btn-group dropdown">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown<span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" value="I">I</a></li>
-                <li><a href="#" value="Log(I)">Log(I)</a></li>
-                <li><a href="#" value="Ln(I)">Ln(I)</a></li>
-                <li><a href="#" value="1/I">1/I</a></li>
-                <li><a href="#" value="I^a">I^a</a></li>
-                <li><a href="#" value="I*Q^a">I*Q^a</a></li>
-                <li><a href="#" value="I^a*Q^b">I^a*Q^b</a></li>
-                <li><a href="#" value="1/Sqrt(I)">1/Sqrt(I)</a></li>
-                <li><a href="#" value="Ln(I*Q)">Ln(I*Q)</a></li>
-                <li><a href="#" value="Ln(I*Q^2)">Ln(I*Q^2)</a></li>
-                <li><a href="#" value="Ln(I*Q+B)">Ln(I*Q+B)</a></li>
-              </ul>
-            </div>
+        <div id = "yaxis-preprocess" class="input-group">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown">
+              Y = <span class="caret" />
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" value="I">I</a></li>
+              <li><a href="#" value="log(I)">log(I)</a></li>
+              <li><a href="#" value="ln(I)">ln(I)</a></li>
+              <li><a href="#" value="1/I">1/I</a></li>
+              <li><a href="#" value="I^a">I^a</a></li>
+              <li><a href="#" value="I*Q^a">I*Q^a</a></li>
+              <li><a href="#" value="I^a*Q^b">I^a*Q^b</a></li>
+              <li><a href="#" value="1/sqrt(I)">1/sqrt(I)</a></li>
+              <li><a href="#" value="ln(I*Q)">ln(I*Q)</a></li>
+              <li><a href="#" value="ln(I*Q^2)">ln(I*Q^2)</a></li>
+              <li><a href="#" value="ln(I*Q+B)">ln(I*Q+B)</a></li>
+            </ul>
           </div>
+          <input type="text" class="form-control pull-left" />
         </div>
+
+        <div id="yaxis-variables" class="form-horizontal"></div>
 
         <!-- Variables: a, b, c -->
         <div class="form-horizontal">
@@ -103,6 +104,7 @@
               <input type="number" class="form-control" placeholder="0" id="input-variable-a" />
             </div>
           </div>
+
           <div class="form-group" style="margin-bottom:0px">
             <label for="" class="col-sm-2 col-xs-2 control-label">b</label>
             <div class="col-sm-10 col-xs-10">
@@ -175,7 +177,8 @@
 <script type="text/javascript">
     var filename = "{% static filename %}";
 </script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/CobylaLSFit.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/plot_fit.js' %}"></script>

@@ -6,8 +6,8 @@ plotfit = (function(my, d3) {
         scale;
 
     xScales.set('Q'      , Q => Q);
-    xScales.set('Log(Q)' , Q => Math.log10(Q));
-    xScales.set('Ln(Q)'  , Q => Math.log(Q));
+    xScales.set('log(Q)' , Q => Math.log10(Q));
+    xScales.set('ln(Q)'  , Q => Math.log(Q));
     xScales.set('Q^2'    , Q => Math.pow(Q, 2.0));
     xScales.set('Q^c'    , Q => Math.pow(Q, c));
 
@@ -37,57 +37,77 @@ plotfit = (function(my, d3) {
 
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
 
-plotfit = (function(my, d3) {
+plotfit = (function(my, d3, math) {
   my.yScale = function yScale() {
-    var scaleName = 'I',
-        a = 0.0,
-        b = 0.0,
+    var scope = d3.map(),
         yScales = d3.map(),
-        scale;
+        scaleExpression = 'I',
+        variables = [],
+        scaleCompiled;
 
-    yScales.set('I'         , I => I);
-    yScales.set('Log(I)'    , I => Math.log10(I));
-    yScales.set('Ln(I)'     , I => Math.log(I));
-    yScales.set('1/I'       , I => 1.0 / I);
-    yScales.set('I^a'       , I => Math.pow(I, a));
-    yScales.set('I*Q^a'     , (I, Q) => I * Math.pow(Q, a));
-    yScales.set('I^a*Q^b'   , (I, Q) => Math.pow(I, a) * Math.pow(Q, b));
-    yScales.set('1/Sqrt(I)' , I => 1.0 / Math.sqrt(I));
-    yScales.set('Ln(I*Q)'   , (I, Q) => Math.log(I * Q));
-    yScales.set('Ln(I*Q^2)' , (I, Q) => Math.log(I * Math.pow(Q, 2.0)));
-    yScales.set('Ln(I*Q+B)' , (I, Q) => Math.log(I * Q + b));
+    function my(I, Q) {
+      scope.set('I', I);
+      scope.set('Q', Q);
 
-    function my() {
-      return scale.apply(scale, arguments);
+      var newScope = {};
+      scope.entries().forEach(function(d) {
+        newScope[d.key] = d.value;
+      });
+      var val = scaleCompiled.eval(newScope);
+      return val;
     }
 
-    my.scaleName = function(_) {
-      if (!arguments.length) return scaleName;
-      scaleName = _;
-      scale = yScales.get(scaleName);
+    my.scaleExpression = function(_) {
+      if (!arguments.length) return scaleExpression;
+      scaleExpression = _;
+
+      variables = math.parse(_).filter(function(node) {
+        return node.isSymbolNode && node.name !== 'I' && node.name !== 'Q';
+      }).map(function(node) {
+        return node.name;
+      });
+      variables.forEach(function(d) {
+        if (!scope.has(d)) {
+          scope.set(d, 0.0);
+        }
+      });
+      scaleCompiled = math.compile(_);
+      console.log(variables, scope);
+
       return my;
     };
 
-    my.a = function(_) {
-      if (!arguments.length) return a;
-      a = _;
+    my.variables = function(_) {
+      if (!arguments.length) return variables;
+      variables = _;
       return my;
     };
 
-    my.b = function(_) {
-      if (!arguments.length) return b;
-      b = _;
+    my.scope = function(_) {
+      if (!arguments.length) {
+        var newScope = d3.map();
+        variables.forEach(function(d) {
+          newScope.set(d, scope.get(d));
+        });
+        return newScope;
+      }
+      scope = _;
       return my;
     };
 
-    my.scaleName(my.scaleName());
+    my.updateVariable = function(key, value) {
+      scope.set(key, value);
+      return my;
+    };
+
+    my.scaleExpression(my.scaleExpression());
 
     return my;
   };
 
   return my;
 
-})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
+})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3, math);
 
 plotfit = (function(my, d3) {
   var fittings = d3.map();
@@ -108,7 +128,7 @@ plotfit = (function(my, d3) {
       var I0 = params[0],
           RG = params[1];
       return [
-        I0, // >= 0 because Ln(I0) can be taken
+        I0, // >= 0 because ln(I0) can be taken
         RG, // >= 0 because radius/distance is positive
       ];
     },
@@ -214,9 +234,6 @@ plotfit = (function(my, d3) {
 
 plotfit = (function(my, Plotly, d3) {
   my.chart = function chart() {
-    // d3.select(foo).data([fullData]).call(plotfit.chart().x().y())
-    // d3.select(foo).data([newData]).call(
-
     var hasInitialized = false,
         hasPlottedTrace = false,
         layoutUpdates = {},
@@ -230,8 +247,8 @@ plotfit = (function(my, Plotly, d3) {
         heightPercent = 80,
         fittedFunction = null,
         fittedLegendName = "Fit",
-        xAxisLogOrLinear = 'linear',
-        yAxisLogOrLinear = 'linear';
+        xAxislogOrLinear = 'linear',
+        yAxislogOrLinear = 'linear';
 
     function my(selection) {
       selection.each(function(fullData) {
@@ -280,11 +297,11 @@ plotfit = (function(my, Plotly, d3) {
           var layout = {
             xaxis: {
               autorange: true,
-              type: xAxisLogOrLinear,
+              type: xAxislogOrLinear,
             },
             yaxis: {
               autorange: true,
-              type: yAxisLogOrLinear,
+              type: yAxislogOrLinear,
             },
             title: title,
             showlegend: true,
@@ -389,16 +406,16 @@ plotfit = (function(my, Plotly, d3) {
       return my;
     };
 
-    my.xAxisLogOrLinear = function(_) {
-      if (!arguments.length) return xAxisLogOrLinear;
-      xAxisLogOrLinear = _;
+    my.xAxislogOrLinear = function(_) {
+      if (!arguments.length) return xAxislogOrLinear;
+      xAxislogOrLinear = _;
       layoutUpdates['xaxis.type'] = _;
       return my;
     };
 
-    my.yAxisLogOrLinear = function(_) {
-      if (!arguments.length) return yAxisLogOrLinear;
-      yAxisLogOrLinear = _;
+    my.yAxislogOrLinear = function(_) {
+      if (!arguments.length) return yAxislogOrLinear;
+      yAxislogOrLinear = _;
       layoutUpdates['yaxis.type'] = _;
       return my;
     };
@@ -435,41 +452,45 @@ plotfit = (function(my, Plotly, d3) {
 
 
       $("#btn-xaxis-linear").on("click", function(eventData) {
-        chart.xAxisLogOrLinear('linear');
+        chart.xAxislogOrLinear('linear');
         $(".btn-xaxis").removeClass("active");
         $(this).addClass("active");
         redraw();
       });
 
       $("#btn-xaxis-log").on("click", function(eventData) {
-        chart.xAxisLogOrLinear('log');
+        chart.xAxislogOrLinear('log');
         $(".btn-xaxis").removeClass("active");
         $(this).addClass("active");
         redraw();
       });
 
       $("#btn-yaxis-linear").on("click", function(eventData) {
-        chart.yAxisLogOrLinear('linear');
+        chart.yAxislogOrLinear('linear');
         $(".btn-yaxis").removeClass("active");
         $(this).addClass("active");
         redraw();
       });
 
       $("#btn-yaxis-log").on("click", function(eventData) {
-        chart.yAxisLogOrLinear('log');
+        chart.yAxislogOrLinear('log');
         $(".btn-yaxis").removeClass("active");
         $(this).addClass("active");
         redraw();
       });
 
-      $("#dropdown-yaxis-preprocess li a").on("click", function() {
-        var btn = $(this).parents(".dropdown").find(".btn"),
-            val = $(this).attr('value');
+      $("#yaxis-preprocess ul li a").on("click", function() {
+        var val = $(this).attr('value');
 
-        btn.html($(this).text() + ' <span class="caret"></span>');
-        btn.val(val);
+        $("#yaxis-preprocess input").val(val);
+        $("#yaxis-preprocess input").trigger('input');
+      });
 
-        yScale.scaleName(val);
+      $("#yaxis-preprocess input").on('input', function() {
+        var val = $(this).val();
+
+        console.log(val);
+        yScale.scaleExpression($(this).val());
         redraw();
       });
 
@@ -548,6 +569,42 @@ plotfit = (function(my, Plotly, d3) {
         chart
           .fittedFunction(fittedFunction)
           .fittedLegendName(fitting.fittingName());
+
+        var scope = yScale.scope().entries();
+
+        var yVars = d3.select("#yaxis-variables");
+
+        var groups = yVars.selectAll('.form-group').data(scope);
+        groups.enter().append('div')
+          .attr('class', 'form-group')
+          .style('margin-bottom', '0px');
+        groups.exit().remove();
+
+        var labels = groups.selectAll('label').data(d => [d]);
+        labels.enter().append('label')
+          .attr("class", "col-sm-6 col-xs-6 control-label text-right");
+        labels.exit().remove();
+        labels
+          .text(d => d.key);
+
+        var wrappers = groups.selectAll('div').data(d => [d]);
+        wrappers.enter().append('div')
+          .attr('class', 'col-sm-6 col-xs-6');
+        wrappers.exit().remove();
+
+        var inputs = wrappers.selectAll('input').data(d => [d]);
+        inputs.enter().append('input')
+          .attr('class', 'form-control')
+          .attr('type', 'text')
+          .attr('placeholder', '0')
+          .attr('value', d => d.value);
+
+        inputs.exit().remove();
+        inputs
+          .on('input', function(d) {
+            yScale.updateVariable(d.key, this.value);
+            redraw();
+          });
 
         plotContainer.data([fullData])
           .call(chart);
