@@ -492,17 +492,17 @@ plotfit = (function(my, Plotly, d3) {
         $("#btn-yaxis-log").trigger('click');
         $("#btn-xaxis-log").trigger('click');
         fitting.fittingName('Guinier');
-        selectData(0, fullData.length);
+        selectData();
       });
 
       $("#fitting-kratky").on('click', function() {
         fitting.fittingName('Kratky');
-        selectData(0, fullData.length);
+        selectData();
       });
 
       $("#fitting-zimm").on('click', function() {
         fitting.fittingName('Zimm');
-        selectData(0, fullData.length);
+        selectData();
       });
 
       $("#fitting-porod").on('click', function() {
@@ -511,7 +511,7 @@ plotfit = (function(my, Plotly, d3) {
         $("#btn-yaxis-log").trigger('click');
         $("#btn-xaxis-log").trigger('click');
         fitting.fittingName('Porod');
-        selectData(0, fullData.length);
+        selectData();
       });
 
       function redraw() {
@@ -592,7 +592,20 @@ plotfit = (function(my, Plotly, d3) {
           .call(chart);
       }
 
+      var selectDataOldStart = 0,
+          selectDataOldEnd = fullData.length;
       function selectData(start, end) {
+        if (typeof start === 'undefined') {
+          start = selectDataOldStart;
+        }
+
+        if (typeof end === 'undefined') {
+          end = selectDataOldEnd;
+        }
+
+        selectDataOldStart = start;
+        selectDataOldEnd = end;
+
         fittedFunction = fitting(fullData, start, end);
         chart.fittedFunction(fittedFunction);
 
