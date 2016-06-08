@@ -87,7 +87,7 @@ class PlotIqSelectFile(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(PlotIqSelectFile, self).get_context_data(**kwargs)
-        context["filenames"] = [ "39887_Iq.txt", "39946_Iq.txt", "39948_Iq.txt",
+        context["filenames"] = [ "39887_Iq.txt", "HSA_test_Iq.txt", "BAX2_200uL_90p_4m_Iq.txt", "LUV_1u_20p_1o3m_mtcell_Iq.txt", "buffer_0p_1o3m_mtcell_Iq.txt", "39946_Iq.txt", "39948_Iq.txt",
             "67670_frame1_Iq.txt", "67670_frame2_Iq.txt", "67671_frame1_Iq.txt",
             "67671_frame2_Iq.txt", "67672_frame1_Iq.txt", "67672_frame2_Iq.txt",
             "67673_frame1_Iq.txt", "67673_frame2_Iq.txt", "67692_frame1_Iq.txt",

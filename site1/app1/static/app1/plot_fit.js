@@ -151,7 +151,7 @@ plotfit = (function(my, d3) {
           fitting.min, // minimum values each parameter can take
           fitting.max, // maximum values each parameter can take
           fitting.constraints, // inequality constraints on parameters
-          { maxFun: firstFitting ? 400000 : 3500, rhoEnd: 1.0e-20 }
+          { maxFun: firstFitting ? 200000 : 3500, rhoEnd: 1.0e-20 }
         );
       }
 
