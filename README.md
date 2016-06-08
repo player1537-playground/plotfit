@@ -23,7 +23,7 @@ python manage.py  runserver
 cd site1/
 ./manage.py makemigrations
 ./manage.py migrate
-make site1/app1/static/app1/data/.INTERMEDIATE
+make site1/app1/static/data/.INTERMEDIATE
 ./manage.py collectstatic
 ./manage.py runserver
 ```
