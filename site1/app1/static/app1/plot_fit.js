@@ -71,7 +71,6 @@ plotfit = (function(my, d3) {
   var fittings = d3.map();
 
   fittings.set('Guinier', {
-    firstRun: true,
     start: [1.0, 1.0],
     min: [-1000.0, -1000.0],
     max: [1000.0, 1000.0],
@@ -101,7 +100,6 @@ plotfit = (function(my, d3) {
   });
 
   fittings.set('Porod', {
-    firstRun: true,
     start: [1.0, 1.0, 1.0],
     min: [-1000.0, -1000.0, -10.0],
     max: [1000.0, 1000.0, 10.0],
@@ -134,6 +132,7 @@ plotfit = (function(my, d3) {
     var fittingName = "Guinier",
         x = function(d) { return d.x; },
         y = function(d) { return d.y; },
+        firstFitting,
         fitting;
 
     function my(fullData, start, end) {
@@ -155,7 +154,7 @@ plotfit = (function(my, d3) {
         );
       }
 
-      fitting.firstRun = false;
+      firstFitting = false;
 
       var fn = fitting.evaluate,
           params = fitResults.params;
@@ -185,6 +184,7 @@ plotfit = (function(my, d3) {
       if (!arguments.length) return fittingName;
       fittingName = _;
       fitting = fittings.get(fittingName);
+      firstFitting = true;
       return my;
     };
 
@@ -202,11 +202,13 @@ plotfit = (function(my, Plotly, d3) {
     var hasInitialized = false,
         hasPlottedTrace = false,
         layoutUpdates = {},
+        styleUpdates = {},
         x = function(d) { return d.x; },
         y = function(d) { return d.y; },
         dev = function(d) { return d.dev; },
         xScale = function(X, Y) { return X; },
         yScale = function(X, Y) { return Y; },
+        colors = function(d) { return "blue"; };
         name = "PlotFit Data",
         title = "PlotFit Chart",
         heightPercent = 80,
@@ -232,6 +234,9 @@ plotfit = (function(my, Plotly, d3) {
           x: plottedX,
           y: plottedY,
           mode: 'lines+markers',
+          marker: {
+            color: tangled.map(colors),
+          },
           error_y: {
             type: 'data',
             visible: true,
@@ -276,7 +281,7 @@ plotfit = (function(my, Plotly, d3) {
             },
           };
 
-          Plotly.plot(node, [data], layout);
+          Plotly.newPlot(node, [data], layout, {showLink:true});
 
           if (fittedY !== null && !hasPlottedTrace) {
             Plotly.addTraces(node, trace);
@@ -290,6 +295,7 @@ plotfit = (function(my, Plotly, d3) {
           node.data[0].y = data.y;
           node.data[0].error_y.array = data.dev;
           node.data[0].name = data.name;
+          node.data[0].marker.color = data.marker.color;
 
           if (fittedY !== null) {
             if (!hasPlottedTrace) {
@@ -303,9 +309,11 @@ plotfit = (function(my, Plotly, d3) {
           }
 
           Plotly.relayout(node, layoutUpdates);
+          Plotly.restyle(node, styleUpdates, [0]);
           Plotly.redraw(node);
 
           layoutUpdates = {};
+          styleUpdates = {};
         }
 
       });
@@ -386,6 +394,12 @@ plotfit = (function(my, Plotly, d3) {
       return my;
     };
 
+    my.colors = function(_) {
+      if (!arguments.length) return colors;
+      colors = _;
+      return my;
+    };
+
     return my;
   };
 
@@ -410,6 +424,7 @@ plotfit = (function(my, Plotly, d3) {
             .y(d => d.I)
             .dev(d => d.dev)
             .heightPercent(80)
+            .colors(d => "blue")
             .xScale(xScale)
             .yScale(yScale),
           fittedFunction;
@@ -647,6 +662,10 @@ plotfit = (function(my, Plotly, d3) {
             redraw();
           });
 
+        chart.colors(function(d, i) {
+          console.log(arguments);
+          return (start <= i && i < end) ? "blue" : "steelblue";
+        });
 
         fittedFunction.params.map(function(d) {
           console.log(d.prettyName, "=", d.value);
