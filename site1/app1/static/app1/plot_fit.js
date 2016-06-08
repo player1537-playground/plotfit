@@ -143,14 +143,15 @@ plotfit = (function(my, d3) {
           tangledData = d3.zip(xData, yData),
           fitResults;
 
-      for (var i=0; i == 0 || fitting.firstRun && i<4; ++i) {
+      for (var i=0; i == 0 || fitting.firstRun && i<1; ++i) {
         fitResults = cobyla.nlFit(
           tangledData, // data to fit against
           fitting.evaluate, // function to fit with
           startValues, // starting values for this function
           fitting.min, // minimum values each parameter can take
           fitting.max, // maximum values each parameter can take
-          fitting.constraints // inequality constraints on parameters
+          fitting.constraints, // inequality constraints on parameters
+          { maxFun: firstFitting ? 400000 : 3500, rhoEnd: 1.0e-20 }
         );
       }
 
