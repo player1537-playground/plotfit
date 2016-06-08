@@ -35,9 +35,29 @@ sectioned/IPTS-15041/.INTERMEDIATE: raw/IPTS-15041/.INTERMEDIATE
 	done
 	touch $@
 
-site1/app1/static/data/.INTERMEDIATE: sectioned/IPTS-15041/.INTERMEDIATE
-	find $(dir $<) -name '*_frame1_Iq.txt' -exec cp {} $(dir $@) \;
+raw/IPTS-11354/.INTERMEDIATE: IPTS-11354.tar.gz
+	@mkdir -p $(dir $@)
+	tar xf $< -C $(dir $@)
+	touch $@
+
+sectioned/IPTS-11354/.INTERMEDIATE: raw/IPTS-11354/.INTERMEDIATE
+	mkdir -p $(dir $@)
+	for f in $(dir $<)chris/*_Iq.txt $(dir $<)chris/mtcell/*_Iq.txt $(dir $<)thibaud_reduction/*_Iq.txt $(dir $<)thibaud_reduction/BAX_LUVs_50nm/*_Iq.txt $(dir $<)thibaud_reduction/BAX_alone/*_Iq.txt; do \
+		awk 'BEGIN { FS="\t"; OFS=","; print "Q","I","dev"; } NR>2 { print $$1,$$2,$$3; }' $$f > $(dir $@)$${f##*/}; \
+	done
+	touch $@
+
+raw/Original/.INTERMEDIATE: Original.tar.gz
+	mkdir -p $(dir $@)
+	tar xf $< -C $(dir $@)
+	touch $@
+
+site1/app1/static/data/.INTERMEDIATE: sectioned/IPTS-15041/.INTERMEDIATE sectioned/IPTS-11354/.INTERMEDIATE raw/Original/.INTERMEDIATE
+	@mkdir -p $(dir $@)
+	find $(dir $^) -name '*_Iq.txt' -exec cp {} $(dir $@) \;
+	touch $@
+
 
 .PHONY: clean
 clean:
-	rm -rf -- raw/ sectioned/ site1/app1/static/data/*_frame1_Iq.txt
+	rm -rf -- raw/ sectioned/ site1/app1/static/data/

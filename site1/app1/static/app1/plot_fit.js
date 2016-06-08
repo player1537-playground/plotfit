@@ -132,6 +132,7 @@ plotfit = (function(my, d3) {
     var fittingName = "Guinier",
         x = function(d) { return d.x; },
         y = function(d) { return d.y; },
+        startValues,
         firstFitting,
         fitting;
 
@@ -142,12 +143,11 @@ plotfit = (function(my, d3) {
           tangledData = d3.zip(xData, yData),
           fitResults;
 
-
       for (var i=0; i == 0 || fitting.firstRun && i<4; ++i) {
         fitResults = cobyla.nlFit(
           tangledData, // data to fit against
           fitting.evaluate, // function to fit with
-          fitting.start, // starting values for this function
+          startValues, // starting values for this function
           fitting.min, // minimum values each parameter can take
           fitting.max, // maximum values each parameter can take
           fitting.constraints // inequality constraints on parameters
@@ -184,6 +184,7 @@ plotfit = (function(my, d3) {
       if (!arguments.length) return fittingName;
       fittingName = _;
       fitting = fittings.get(fittingName);
+      startValues = fitting.start.slice();
       firstFitting = true;
       return my;
     };
@@ -225,6 +226,7 @@ plotfit = (function(my, Plotly, d3) {
             tangled = d3.zip(fullX, fullY),
             plottedX = tangled.map(d => xScale.apply(xScale, d)),
             plottedY = tangled.map(d => yScale.apply(yScale, d)),
+            plottedMinY = d3.min(plottedY.filter(d => yAxislogOrLinear === 'linear' || d > 0)),
             fittedY = null,
             trace = null,
             data;
@@ -248,7 +250,15 @@ plotfit = (function(my, Plotly, d3) {
         };
 
         if (fittedFunction !== null) {
-          fittedY = tangled.map(d => yScale(d[0], fittedFunction(d[0])));
+          fittedY = tangled.map(function(d) {
+            var foo = yScale(d[0], fittedFunction(d[0]));
+
+            if (foo < plottedMinY) {
+              return plottedMinY;
+            } else {
+              return foo;
+            }
+          });
 
           trace = {
             x: plottedX,
@@ -663,7 +673,6 @@ plotfit = (function(my, Plotly, d3) {
           });
 
         chart.colors(function(d, i) {
-          console.log(arguments);
           return (start <= i && i < end) ? "blue" : "steelblue";
         });
 
