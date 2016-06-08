@@ -17,13 +17,34 @@ cd site1/
 python manage.py  runserver
 ```
 
+# Data:
+
+You will need several data files to run the full application. These are:
+
+* IPTS-15041.tar.gz
+* IPTS-11354.tar.gz
+* Original.tar.gz
+
+To extract and reformat this data, you can run the command:
+
+```bash
+make site1/app1/static/data/.INTERMEDIATE
+```
+
+Later, you can delete the extracted data with
+
+```bash
+make clean
+```
+
 # Run it:
+
+Once the data is extracted:
 
 ```bash
 cd site1/
 ./manage.py makemigrations
 ./manage.py migrate
-make site1/app1/static/data/.INTERMEDIATE
 ./manage.py collectstatic
 ./manage.py runserver
 ```
@@ -34,9 +55,6 @@ the server.
 ```bash
 make
 ```
-
-Note: Make sure you have the right data located in the root directory named
-"IPTS-15041.tar.gz".
 
 Go to:
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
