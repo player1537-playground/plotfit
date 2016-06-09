@@ -438,9 +438,9 @@ plotfit = (function(my, Plotly, d3) {
             .colors(d => "blue")
             .xScale(xScale)
             .yScale(yScale),
-          fittedFunction;
+          fittedFunction = null;
 
-      selectData(0, fullData.length);
+      redraw();
 
       $("#btn-xaxis-linear").on("click", function(eventData) {
         chart.xAxislogOrLinear('linear');
