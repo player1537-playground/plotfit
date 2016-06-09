@@ -507,7 +507,13 @@ plotfit = (function(my, Plotly, d3) {
         min: 0,
         max: fullData.length,
         values: [0, fullData.length],
+        create: function() {
+          $("#plot_range_slider_min").appendTo($("#plot_range_slider .ui-slider-handle").get(0));
+          $("#plot_range_slider_max").appendTo($("#plot_range_slider .ui-slider-handle").get(1));
+        },
         slide: function(event, ui) {
+          $("#plot_range_slider_min").text(fullData[ui.values[0]].Q.toString().substring(0, 5));
+          $("#plot_range_slider_max").text(fullData[Math.min(fullData.length-1, ui.values[1])].Q.toString().substring(0, 5));
           selectData(ui.values[0], ui.values[1]);
         },
       });
