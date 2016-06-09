@@ -164,6 +164,12 @@ plotfit = (function(my, d3) {
         return fn(Q, params);
       }
 
+      fitted.domain = function(_) {
+        if (!arguments.length) return [start, end];
+        console.error("fitted.domain() not a setter");
+        return fitted;
+      };
+
       fitted.params = fitting.params(params);
 
       return fitted;
@@ -251,18 +257,17 @@ plotfit = (function(my, Plotly, d3) {
         };
 
         if (fittedFunction !== null) {
-          fittedY = tangled.map(function(d) {
-            var foo = yScale(d[0], fittedFunction(d[0]));
-
-            if (foo < plottedMinY) {
-              return plottedMinY;
-            } else {
-              return foo;
-            }
+          var fittedDomain = fittedFunction.domain(),
+              start = fittedDomain[0],
+              end = fittedDomain[1],
+              tangledFit = tangled.filter((d, i) => start <= i && i < end);
+          fittedY = tangledFit.map(function(d) {
+            return yScale(d[0], fittedFunction(d[0]));
           });
+          fittedX = tangledFit.map(d => d[0]);
 
           trace = {
-            x: plottedX,
+            x: fittedX,
             y: fittedY,
             name: fittedLegendName,
             type: 'scatter',
