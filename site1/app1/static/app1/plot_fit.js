@@ -304,7 +304,7 @@ plotfit = (function(my, Plotly, d3) {
         } else /* hasInitialized */ {
           node.data[0].x = data.x;
           node.data[0].y = data.y;
-          node.data[0].error_y.array = data.dev;
+          node.data[0].error_y.array = data.error_y.array;
           node.data[0].name = data.name;
           node.data[0].marker.color = data.marker.color;
 
