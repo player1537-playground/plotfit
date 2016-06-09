@@ -5,143 +5,149 @@
 {{block.super}}
 <script src="https://cdn.plot.ly/plotly-latest.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css" type="text/css" />
-<link rel="stylesheet" href="{% static 'app1/plot_fit.css' %}" type="text/css" />
 {% endblock %}
 
 {% block content %}
 
-<div id="wrapper">
-  <div id="sidebar-wrapper">
-    <h3>Display Settings</h3>
-    <div class="btn-group-vertical">
+<div class="container">
+  <h1>Plot using Plot.ly and some clever JavaScript</h1>
+  <p class="lead">Here we go...</p>
+</div>
 
-      <!-- X select: linear/log -->
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button type="button" class="btn btn-default" disabled>X Axis</button>
-          </div>
-          <div class="btn-group">
-            <button type="button" id="btn-xaxis-linear" class="btn-xaxis btn btn-default active" data-type="linear">Linear</button>
-          </div>
-          <div class="btn-group">
-            <button type="button" id="btn-xaxis-log" class="btn-xaxis btn btn-default" data-type="log">log</button>
-          </div>
-        </div>
-      </div>
+<div class="container">
+  <div class="row" style="border: 1px solid black">
+    <div id="plot_scale" class="col-md-3 col-sm-4">
+      <h3>Display Settings</h3>
+      <div class="btn-group-vertical">
 
-      <!-- Y select: linear/log -->
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button type="button" class="btn btn-default" disabled>Y Axis</button>
-          </div>
-          <div class="btn-group">
-            <button type="button" id="btn-yaxis-linear" class="btn-yaxis btn btn-default active">Linear</button>
-          </div>
-          <div class="btn-group">
-            <button type="button" id="btn-yaxis-log" class="btn-yaxis btn btn-default">log</button>
+        <!-- X select: linear/log -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>X Axis</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-xaxis-linear" class="btn-xaxis btn btn-default active" data-type="linear">Linear</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-xaxis-log" class="btn-xaxis btn btn-default" data-type="log">log</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- X Select: all the options -->
-      <div id="xaxis-preprocess" class="input-group">
-        <div class="input-group-btn">
-          <button type="button" class="btn btn-default dropdown-toggle"
-                  data-toggle="dropdown">
-            X = <span class="caret" />
-          </button>
-          <ul class="dropdown-menu">
-            <li><a href="#" value="Q">Q</a></li>
-            <li><a href="#" value="log(Q)">log(Q)</a></li>
-            <li><a href="#" value="ln(Q)">ln(Q)</a></li>
-            <li><a href="#" value="Q^2">Q^2</a></li>
-            <li><a href="#" value="Q^c">Q^c</a></li>
-          </ul>
+        <!-- Y select: linear/log -->
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" disabled>Y Axis</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-yaxis-linear" class="btn-yaxis btn btn-default active">Linear</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" id="btn-yaxis-log" class="btn-yaxis btn btn-default">log</button>
+            </div>
+          </div>
         </div>
-        <input type="text" class="form-control pull-left" />
-      </div>
 
-      <div id="xaxis-variables" class="form-horizontal"></div>
-
-      <!-- Y Select: all the options -->
-      <div id="yaxis-preprocess" class="input-group">
-        <div class="input-group-btn">
-          <button type="button" class="btn btn-default dropdown-toggle"
-                  data-toggle="dropdown">
-            Y = <span class="caret" />
-          </button>
-          <ul class="dropdown-menu">
-            <li><a href="#" value="I">I</a></li>
-            <li><a href="#" value="log(I)">log(I)</a></li>
-            <li><a href="#" value="ln(I)">ln(I)</a></li>
-            <li><a href="#" value="1/I">1/I</a></li>
-            <li><a href="#" value="I^a">I^a</a></li>
-            <li><a href="#" value="I*Q^a">I*Q^a</a></li>
-            <li><a href="#" value="I^a*Q^b">I^a*Q^b</a></li>
-            <li><a href="#" value="1/sqrt(I)">1/sqrt(I)</a></li>
-            <li><a href="#" value="ln(I*Q)">ln(I*Q)</a></li>
-            <li><a href="#" value="ln(I*Q^2)">ln(I*Q^2)</a></li>
-            <li><a href="#" value="ln(I*Q+B)">ln(I*Q+B)</a></li>
-          </ul>
+        <!-- X Select: all the options -->
+        <div id="xaxis-preprocess" class="input-group">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown">
+              X = <span class="caret" />
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" value="Q">Q</a></li>
+              <li><a href="#" value="log(Q)">log(Q)</a></li>
+              <li><a href="#" value="ln(Q)">ln(Q)</a></li>
+              <li><a href="#" value="Q^2">Q^2</a></li>
+              <li><a href="#" value="Q^c">Q^c</a></li>
+            </ul>
+          </div>
+          <input type="text" class="form-control pull-left" />
         </div>
-        <input type="text" class="form-control pull-left" />
+
+        <div id="xaxis-variables" class="form-horizontal"></div>
+
+        <!-- Y Select: all the options -->
+        <div id="yaxis-preprocess" class="input-group">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown">
+              Y = <span class="caret" />
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" value="I">I</a></li>
+              <li><a href="#" value="log(I)">log(I)</a></li>
+              <li><a href="#" value="ln(I)">ln(I)</a></li>
+              <li><a href="#" value="1/I">1/I</a></li>
+              <li><a href="#" value="I^a">I^a</a></li>
+              <li><a href="#" value="I*Q^a">I*Q^a</a></li>
+              <li><a href="#" value="I^a*Q^b">I^a*Q^b</a></li>
+              <li><a href="#" value="1/sqrt(I)">1/sqrt(I)</a></li>
+              <li><a href="#" value="ln(I*Q)">ln(I*Q)</a></li>
+              <li><a href="#" value="ln(I*Q^2)">ln(I*Q^2)</a></li>
+              <li><a href="#" value="ln(I*Q+B)">ln(I*Q+B)</a></li>
+            </ul>
+          </div>
+          <input type="text" class="form-control pull-left" />
+        </div>
+
+        <div id="yaxis-variables" class="form-horizontal"></div>
       </div>
 
-      <div id="yaxis-variables" class="form-horizontal"></div>
+      <h3>Fitting Settings</h3>
+      <div class="btn-group-vertical">
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button id="fitting-guinier" type="button" class="btn btn-default">Guinier</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button id="fitting-kratky" type="button" class="btn btn-default">Kratky</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button id="fitting-zimm" type="button" class="btn btn-default">Zimm</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button id="fitting-porod" type="button" class="btn btn-default">Porod</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h3>Fitting Parameters</h3>
+      <div id="fitting-parameters"></div>
+
     </div>
 
-    <h3>Fitting Settings</h3>
-    <div class="btn-group-vertical">
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button id="fitting-guinier" type="button" class="btn btn-default">Guinier</button>
-          </div>
-        </div>
+    <div class="col-md-9 col-sm-8">
+      <!-- The actual plot contents -->
+      <div class="row">
+        <div id="plot_container" class="col-xs-12"></div>
       </div>
-
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button id="fitting-kratky" type="button" class="btn btn-default">Kratky</button>
-          </div>
-        </div>
+      <div class="row">
+        <div id="plot_range_slider" class="col-xs-12"></div>
       </div>
-
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button id="fitting-zimm" type="button" class="btn btn-default">Zimm</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button id="fitting-porod" type="button" class="btn btn-default">Porod</button>
-          </div>
-        </div>
-      </div>
-
     </div>
-
-    <h3>Fitting Parameters</h3>
-    <div id="fitting-parameters"></div>
-
-  </div><!-- /#sidebar-wrapper -->
-
-  <div id="page-content-wrapper">
-    <!-- The actual plot contents -->
-    <div class="row">
-      <div id="plot_container" class="col-xs-12"></div>
-    </div>
-    <div class="row">
-      <div id="plot_range_slider" class="col-xs-12"></div>
-    </div>
-  </div><!-- /#sidebar-wrapper -->
+  </div>
 </div>
 
 {% endblock %}
