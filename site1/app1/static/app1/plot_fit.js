@@ -1,5 +1,9 @@
 plotfit = (function(my, d3, math) {
-  my.expression = function expression() {
+  my.expression = function expression(dispatch) {
+    dispatch = dispatch || d3.dispatch.apply(null, [
+      'parameters', 'scope', 'expr', 'change',
+    ]);
+
     var parameters = [],
         scope = {},
         expr = null,
@@ -22,12 +26,16 @@ plotfit = (function(my, d3, math) {
     my.parameters = function(_) {
       if (!arguments.length) return parameters;
       parameters = _;
+      dispatch.parameters.call(null, my);
+      dispatch.change.call(null, my);
       return my;
     };
 
     my.scope = function(_) {
       if (!arguments.length) return scope;
       scope = _;
+      dispatch.scope.call(null, my);
+      dispatch.change.call(null, my);
       return my;
     };
 
@@ -48,15 +56,22 @@ plotfit = (function(my, d3, math) {
         if (scope.hasOwnProperty(name)) {
           newScope[name] = scope[name];
         } else {
-          scope[name] = 0;
+          newScope[name] = 0;
         }
       });
       scope = newScope;
 
+      console.log(_, variables, newScope);
+
       compiled = parsed.compile();
+
+      dispatch.expr.call(null, my);
+      dispatch.change.call(null, my);
 
       return my;
     };
+
+    my = d3.rebind(my, dispatch, 'on');
 
     return my;
   };
@@ -66,8 +81,12 @@ plotfit = (function(my, d3, math) {
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3, math);
 
 plotfit = (function(my, d3, math) {
-  my.scale = function yScale() {
-    var expression = plotfit.expression()
+  my.scale = function scale(dispatch) {
+    dispatch = dispatch || d3.dispatch.apply(null, [
+      'parameters', 'scope', 'expr', 'change', 'logOrLinear',
+    ]);
+
+    var expression = plotfit.expression(dispatch)
           .parameters(['Q', 'I']),
         logOrLinear = 'linear';
 
@@ -78,15 +97,144 @@ plotfit = (function(my, d3, math) {
     my.logOrLinear = function(_) {
       if (!arguments.length) return logOrLinear;
       logOrLinear = _;
+      dispatch.logOrLinear.call(null, my);
+      dispatch.change.call(null, my);
       return my;
     };
 
-    return d3.rebind(my, expression, 'scope', 'expr');
+    my = d3.rebind(my, dispatch, 'on');
+    my = d3.rebind(my, expression, 'scope', 'expr');
+
+    return my;
   };
 
   return my;
 
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3, math);
+
+plotfit = (function(my, d3) {
+  my.scaleVC = function scaleVC() {
+    var scale = plotfit.scale();
+
+    function my(selection) {
+      selection.each(function(data) {
+        var self = d3.select(this);
+
+        function redraw() {
+          var inputGroup = self.selectAll(".input-group").data(d => [d]);
+          inputGroup.enter().append('div')
+            .attr('class', 'input-group');
+
+          var btnGroup = inputGroup.selectAll(".input-group-btn").data(d => [d]);
+          btnGroup.enter().append('div')
+            .attr('class', 'input-group-btn');
+
+          var btn = btnGroup.selectAll('.dropdown-toggle').data(d => [d]);
+          btn.enter().append('button')
+            .attr('class', 'btn btn-default dropdown-toggle')
+            .attr('data-toggle', 'dropdown');
+          btn
+            .html(d => d.dropdownText + '<span class="caret" />');
+
+          var ul = btnGroup.selectAll('ul').data(d => [d]);
+          ul.enter().append('ul')
+            .attr('class', 'dropdown-menu');
+
+          var li = ul.selectAll('li').data(d => d.options);
+          li.enter().append('li');
+
+          var logBtn = btnGroup.selectAll('.log-btn').data(d => [d]);
+          logBtn.enter().append('button')
+            .attr('class', 'btn btn-default log-btn')
+            .text('log');
+          logBtn
+            .classed('active', scale.logOrLinear() === 'log')
+            .on('click', function() {
+              scale.logOrLinear(scale.logOrLinear() === 'log' ? 'linear' : 'log');
+            });
+
+          var a = li.selectAll('a').data(d => [d]);
+          a.enter().append('a')
+            .attr('href', '#');
+          a
+            .attr('value', d => d)
+            .text(d => d)
+            .on('click', function(d) {
+              scale.expr(d);
+            });
+
+          var input = inputGroup.selectAll('input').data(d => [d]);
+          input.enter().append('input')
+            .attr('type', 'text')
+            .attr('class', 'form-control pull-left');
+          input
+            .property('value', scale.expr())
+            .on('input', function(d) {
+              scale.expr(d3.select(this).property('value'));
+            });
+
+          var scopeEntries = d3.entries(scale.scope());
+
+          var vars = self.selectAll('.variables').data([scopeEntries]);
+          vars.enter().append('div')
+            .attr('class', 'variables form-horizontal');
+
+          var groups = vars.selectAll('.form-group').data(d => { console.log(d); return d; });
+          groups.enter().append('div')
+            .attr('class', 'form-group')
+            .style('margin-bottom', '0px');
+          groups.exit().remove();
+
+          var labels = groups.selectAll('label').data(d => [d]);
+          labels.enter().append('label')
+            .attr("class", "col-sm-6 col-xs-6 control-label text-right");
+          labels.exit().remove();
+          labels
+            .text(d => d.key);
+
+          var wrappers = groups.selectAll('div').data(d => [d]);
+          wrappers.enter().append('div')
+            .attr('class', 'col-sm-6 col-xs-6');
+          wrappers.exit().remove();
+
+          var inputs = wrappers.selectAll('input').data(d => [d]);
+          inputs.enter().append('input')
+            .attr('class', 'form-control')
+            .attr('type', 'text')
+            .attr('placeholder', '0')
+            .attr('name', d => d.key);
+          inputs.exit().remove();
+          inputs
+            .attr('value', d => d.value === 0 ? '' : d.value)
+            .on('input', function(d) {
+              var scope = scale.scope();
+              scope[d.key] = this.value;
+              scale.scope(scope);
+            });
+        }
+
+        redraw();
+
+        scale.on('change.scaleVC', function() {
+          redraw();
+        });
+
+      });
+    }
+
+    my.scale = function(_) {
+      if (!arguments.length) return scale;
+      scale.on('change.scaleVC', null);
+      scale = _;
+      return my;
+    };
+
+    return my;
+  };
+
+  return my;
+
+})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
 
 plotfit = (function(my, d3) {
   var fittings = d3.map();
@@ -237,13 +385,12 @@ plotfit = (function(my, Plotly, d3) {
         dev = function(d) { return d.dev; },
         xScale = function(X, Y) { return X; },
         yScale = function(X, Y) { return Y; },
-        colors = function(d) { return "blue"; };
+        colors = function(d) { return "blue"; },
         name = "PlotFit Data",
         title = "PlotFit Chart",
         heightPercent = 80,
         fittedFunction = null,
         fittedLegendName = "Fit",
-        xAxislogOrLinear = 'linear',
         yAxislogOrLinear = 'linear';
 
     function my(selection) {
@@ -305,7 +452,7 @@ plotfit = (function(my, Plotly, d3) {
           var layout = {
             xaxis: {
               autorange: true,
-              type: xAxislogOrLinear,
+              type: xScale.logOrLinear(),
             },
             yaxis: {
               autorange: true,
@@ -345,7 +492,7 @@ plotfit = (function(my, Plotly, d3) {
             }
           }
 
-          Plotly.relayout(node, layoutUpdates);
+          Plotly.relayout(node, { 'xaxis.type': xScale.logOrLinear() });
           Plotly.restyle(node, styleUpdates, [0]);
           Plotly.redraw(node);
 
@@ -417,20 +564,6 @@ plotfit = (function(my, Plotly, d3) {
       return my;
     };
 
-    my.xAxislogOrLinear = function(_) {
-      if (!arguments.length) return xAxislogOrLinear;
-      xAxislogOrLinear = _;
-      layoutUpdates['xaxis.type'] = _;
-      return my;
-    };
-
-    my.yAxislogOrLinear = function(_) {
-      if (!arguments.length) return yAxislogOrLinear;
-      yAxislogOrLinear = _;
-      layoutUpdates['yaxis.type'] = _;
-      return my;
-    };
-
     my.colors = function(_) {
       if (!arguments.length) return colors;
       colors = _;
@@ -452,6 +585,7 @@ plotfit = (function(my, Plotly, d3) {
     .get(function(error, fullData) {
       var plotContainer = d3.select("#plot_container"),
           xScale = plotfit.scale().expr('Q'),
+          xScaleVC = plotfit.scaleVC().scale(xScale),
           yScale = plotfit.scale().expr('I'),
           fitting = plotfit.fitting()
             .x(d => d.Q)
@@ -465,6 +599,15 @@ plotfit = (function(my, Plotly, d3) {
             .xScale(xScale)
             .yScale(yScale),
           fittedFunction = null;
+
+      d3.select("#foo").datum({
+        options: ['Q', 'log(Q)', 'Q^2', 'Q^a'],
+        dropdownText: 'X = ',
+      }).call(xScaleVC);
+
+      xScale.on('change.main', function() {
+        redraw();
+      });
 
       redraw();
 
@@ -610,42 +753,6 @@ plotfit = (function(my, Plotly, d3) {
             scope[d.key] = this.value;
             yScale.scope(scope);
 
-            redraw();
-          });
-
-        var xScope = d3.entries(xScale.scope());
-
-        var xVars = d3.select("#xaxis-variables");
-
-        var xGroups = xVars.selectAll('.form-group').data(xScope);
-        xGroups.enter().append('div')
-          .attr('class', 'form-group')
-          .style('margin-bottom', '0px');
-        xGroups.exit().remove();
-
-        var xLabels = xGroups.selectAll('label').data(d => [d]);
-        xLabels.enter().append('label')
-          .attr("class", "col-sm-6 col-xs-6 control-label text-right");
-        xLabels.exit().remove();
-        xLabels
-          .text(d => d.key);
-
-        var xWrappers = xGroups.selectAll('div').data(d => [d]);
-        xWrappers.enter().append('div')
-          .attr('class', 'col-sm-6 col-xs-6');
-        xWrappers.exit().remove();
-
-        var xInputs = xWrappers.selectAll('input').data(d => [d]);
-        xInputs.enter().append('input')
-          .attr('class', 'form-control')
-          .attr('type', 'text')
-          .attr('placeholder', '0');
-        xInputs.exit().remove();
-        xInputs
-          .on('input', function(d) {
-            var scope = xScale.scope();
-            scope[d.key] = this.value;
-            xScale.scope(scope);
             redraw();
           });
 
