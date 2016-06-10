@@ -113,8 +113,16 @@ plotfit = (function(my, d3, math) {
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3, math);
 
 plotfit = (function(my, d3) {
-  my.scaleVC = function scaleVC() {
-    var scale = plotfit.scale();
+  my.sidebarInput = function sidebarInput(dispatch) {
+    dispatch = dispatch || d3.dispatch.apply(null, [
+      'dropdownSelected', 'buttonPressed', 'textChanged', 'inputChanged',
+    ]);
+
+    var dropdownLabel = 'Sel ',
+        dropdownOptions = [],
+        buttonText = 'But',
+        inputPlaceholder = 'placeholder',
+        inputValue = '';
 
     function my(selection) {
       selection.each(function(data) {
@@ -125,33 +133,23 @@ plotfit = (function(my, d3) {
           inputGroup.enter().append('div')
             .attr('class', 'input-group');
 
-          var btnGroup = inputGroup.selectAll(".input-group-btn").data(d => [d]);
-          btnGroup.enter().append('div')
+          var dropdown = inputGroup.selectAll(".input-group-btn").data(d => [d]);
+          dropdown.enter().append('div')
             .attr('class', 'input-group-btn');
 
-          var btn = btnGroup.selectAll('.dropdown-toggle').data(d => [d]);
-          btn.enter().append('button')
+          var dropBtn = dropdown.selectAll('.dropdown-toggle').data(d => [d]);
+          dropBtn.enter().append('button')
             .attr('class', 'btn btn-default dropdown-toggle')
             .attr('data-toggle', 'dropdown');
-          btn
-            .html(d => d.dropdownText + '<span class="caret" />');
+          dropBtn
+            .html(d => d.dropdownLabel + '<span class="caret" />');
 
-          var ul = btnGroup.selectAll('ul').data(d => [d]);
+          var ul = dropdown.selectAll('ul').data(d => [d]);
           ul.enter().append('ul')
             .attr('class', 'dropdown-menu');
 
           var li = ul.selectAll('li').data(d => d.options);
           li.enter().append('li');
-
-          var logBtn = btnGroup.selectAll('.log-btn').data(d => [d]);
-          logBtn.enter().append('button')
-            .attr('class', 'btn btn-default log-btn')
-            .text('log');
-          logBtn
-            .classed('active', scale.logOrLinear() === 'log')
-            .on('click', function() {
-              scale.logOrLinear(scale.logOrLinear() === 'log' ? 'linear' : 'log');
-            });
 
           var a = li.selectAll('a').data(d => [d]);
           a.enter().append('a')
@@ -160,7 +158,18 @@ plotfit = (function(my, d3) {
             .attr('value', d => d)
             .text(d => d)
             .on('click', function(d) {
-              scale.expr(d);
+              dispatch.dropdownSelected.apply(this, arguments);
+            });
+
+          var btn = dropdown.selectAll('.log-btn').data(d => [d]);
+          btn.enter().append('button')
+            .attr('class', 'btn btn-default log-btn')
+            .text('log');
+          btn
+            .text(d => d.buttonLabel)
+            .classed('active', d => d.buttonActive)
+            .on('click', function() {
+              dispatch.buttonPressed.apply(this, arguments);
             });
 
           var input = inputGroup.selectAll('input').data(d => [d]);
@@ -168,18 +177,16 @@ plotfit = (function(my, d3) {
             .attr('type', 'text')
             .attr('class', 'form-control pull-left');
           input
-            .property('value', scale.expr())
+            .property('value', d => d.textValue)
             .on('input', function(d) {
-              scale.expr(d3.select(this).property('value'));
+              dispatch.textChanged.apply(this, arguments);
             });
 
-          var scopeEntries = d3.entries(scale.scope());
-
-          var vars = self.selectAll('.variables').data([scopeEntries]);
+          var vars = self.selectAll('.variables').data(d => [d.inputs]);
           vars.enter().append('div')
             .attr('class', 'variables form-horizontal');
 
-          var groups = vars.selectAll('.form-group').data(d => { console.log(d); return d; });
+          var groups = vars.selectAll('.form-group').data(d => d);
           groups.enter().append('div')
             .attr('class', 'form-group')
             .style('margin-bottom', '0px');
@@ -190,7 +197,7 @@ plotfit = (function(my, d3) {
             .attr("class", "col-sm-6 col-xs-6 control-label text-right");
           labels.exit().remove();
           labels
-            .text(d => d.key);
+            .text(d => d.prettyName);
 
           var wrappers = groups.selectAll('div').data(d => [d]);
           wrappers.enter().append('div')
@@ -201,15 +208,79 @@ plotfit = (function(my, d3) {
           inputs.enter().append('input')
             .attr('class', 'form-control')
             .attr('type', 'text')
-            .attr('placeholder', '0')
-            .attr('name', d => d.key);
+            .attr('placeholder', d => d.placeholder)
+            .attr('name', d => d.name);
           inputs.exit().remove();
           inputs
-            .attr('value', d => d.value === 0 ? '' : d.value)
+            .attr('value', d => d.value)
             .on('input', function(d) {
+              dispatch.inputChanged.apply(this, arguments);
+            });
+        };
+
+        redraw();
+      });
+    }
+
+    my = d3.rebind(my, dispatch, 'on');
+
+    return my;
+  };
+
+  return my;
+
+})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
+
+plotfit = (function(my, d3) {
+  my.scaleVC = function scaleVC() {
+    var scale = plotfit.scale(),
+        sidebarInput = plotfit.sidebarInput();
+
+    function my(selection) {
+      selection.each(function(data) {
+        var self = d3.select(this);
+
+        function redraw() {
+
+          var newData = {
+            dropdownLabel: data.dropdownLabel,
+            options: data.options,
+            buttonActive: scale.logOrLinear() === 'log',
+            buttonLabel: 'log',
+            textValue: scale.expr(),
+            inputs: d3.entries(scale.scope()).map(d => {
+              return {
+                name: d.key,
+                prettyName: d.key,
+                value: d.value === 0 ? '' : d.value,
+                placeholder: '0',
+              };
+            }),
+          };
+
+          var wrapper = self.selectAll(".wrapper").data([newData]);
+          wrapper.enter().append('div')
+            .attr('class', 'wrapper');
+          wrapper
+            .call(sidebarInput);
+
+          sidebarInput
+            .on('dropdownSelected', function(d) {
+              console.log(d, this);
+              scale.expr(d);
+
+            }).on('buttonPressed', function(d) {
+              var old = scale.logOrLinear();
+              scale.logOrLinear(old === 'log' ? 'linear' : 'log');
+
+            }).on('inputChanged', function(d) {
               var scope = scale.scope();
-              scope[d.key] = this.value;
+              scope[d.name] = this.value;
               scale.scope(scope);
+
+            }).on('textChanged', function(d) {
+              scale.expr(d3.select(this).property('value'));
+
             });
         }
 
@@ -604,13 +675,13 @@ plotfit = (function(my, Plotly, d3) {
 
       d3.select("#x-axis-settings").datum({
         options: ['Q', 'log10(Q)', 'log(Q)', 'Q^2', 'Q^a'],
-        dropdownText: 'X = ',
+        dropdownLabel: 'X = ',
       }).call(xScaleVC);
 
       d3.select("#y-axis-settings").datum({
         options: ['I', 'log10(I)', 'log(I)', '1/I', 'I^a', 'I*Q^a', 'I^a*Q^b',
                   '1/sqrt(I)', 'log(I*Q)', 'log(I*Q^2)', 'log(I*Q+B)', ],
-        dropdownText: 'Y = ',
+        dropdownLabel: 'Y = ',
       }).call(yScaleVC);
 
       xScale.on('change.main', function() {
