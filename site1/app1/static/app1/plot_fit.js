@@ -1,66 +1,87 @@
 plotfit = (function(my, d3, math) {
-  my.scale = function yScale() {
-    var scope = d3.map(),
-        yScales = d3.map(),
-        variables = [],
-        scaleExpression,
-        scaleCompiled;
+  my.expression = function expression() {
+    var parameters = [],
+        scope = {},
+        expr = null,
+        compiled = null;
 
-    function my(Q, I) {
-      scope.set('Q', Q);
-      scope.set('I', I);
+    function my() {
+      var fullScope = {};
 
-      var newScope = {};
-      scope.entries().forEach(function(d) {
-        newScope[d.key] = d.value;
+      d3.entries(scope).forEach(function(d) {
+        fullScope[d.key] = d.value;
       });
-      var val = scaleCompiled.eval(newScope);
-      return val;
+
+      d3.zip(parameters, arguments).forEach(function(d) {
+        fullScope[d[0]] = d[1];
+      });
+
+      return compiled.eval(fullScope);
     }
 
-    my.scaleExpression = function(_) {
-      if (!arguments.length) return scaleExpression;
-      scaleExpression = _;
-
-      variables = math.parse(_).filter(function(node) {
-        return node.isSymbolNode && node.name !== 'I' && node.name !== 'Q';
-      }).map(function(node) {
-        return node.name;
-      });
-      variables.forEach(function(d) {
-        if (!scope.has(d)) {
-          scope.set(d, 0.0);
-        }
-      });
-      scaleCompiled = math.compile(_);
-
-      return my;
-    };
-
-    my.variables = function(_) {
-      if (!arguments.length) return variables;
-      variables = _;
+    my.parameters = function(_) {
+      if (!arguments.length) return parameters;
+      parameters = _;
       return my;
     };
 
     my.scope = function(_) {
-      if (!arguments.length) {
-        var newScope = d3.map();
-        variables.forEach(function(d) {
-          newScope.set(d, scope.get(d));
-        });
-        return newScope;
-      }
+      if (!arguments.length) return scope;
       scope = _;
       return my;
     };
 
-    my.updateVariable = function(key, value) {
-      scope.set(key, value);
+    my.expr = function(_) {
+      if (!arguments.length) return expr;
+      expr = _;
+
+      var parsed = math.parse(_);
+
+      var variables = parsed.filter(function(node) {
+        return node.isSymbolNode && !parameters.includes(node.name);
+      }).map(function(node) {
+        return node.name;
+      });
+
+      var newScope = {};
+      variables.forEach(function(name) {
+        if (scope.hasOwnProperty(name)) {
+          newScope[name] = scope[name];
+        } else {
+          scope[name] = 0;
+        }
+      });
+      scope = newScope;
+
+      compiled = parsed.compile();
+
       return my;
     };
 
     return my;
+  };
+
+  return my;
+
+})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3, math);
+
+plotfit = (function(my, d3, math) {
+  my.scale = function yScale() {
+    var expression = plotfit.expression()
+          .parameters(['Q', 'I']),
+        logOrLinear = 'linear';
+
+    function my() {
+      return expression.apply(null, arguments);
+    }
+
+    my.logOrLinear = function(_) {
+      if (!arguments.length) return logOrLinear;
+      logOrLinear = _;
+      return my;
+    };
+
+    return d3.rebind(my, expression, 'scope', 'expr');
   };
 
   return my;
@@ -430,8 +451,8 @@ plotfit = (function(my, Plotly, d3) {
     .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
     .get(function(error, fullData) {
       var plotContainer = d3.select("#plot_container"),
-          xScale = plotfit.scale().scaleExpression('Q'),
-          yScale = plotfit.scale().scaleExpression('I'),
+          xScale = plotfit.scale().expr('Q'),
+          yScale = plotfit.scale().expr('I'),
           fitting = plotfit.fitting()
             .x(d => d.Q)
             .y(d => d.I),
@@ -485,7 +506,7 @@ plotfit = (function(my, Plotly, d3) {
       $("#yaxis-preprocess input").on('input', function() {
         var val = $(this).val();
 
-        yScale.scaleExpression($(this).val());
+        yScale.expr($(this).val());
         redraw();
       });
 
@@ -499,7 +520,7 @@ plotfit = (function(my, Plotly, d3) {
       $("#xaxis-preprocess input").on('input', function() {
         var val = $(this).val();
 
-        xScale.scaleExpression($(this).val());
+        xScale.expr($(this).val());
         redraw();
       });
 
@@ -554,7 +575,7 @@ plotfit = (function(my, Plotly, d3) {
           .fittedFunction(fittedFunction)
           .fittedLegendName(fitting.fittingName());
 
-        var yScope = yScale.scope().entries();
+        var yScope = d3.entries(yScale.scope());
 
         var yVars = d3.select("#yaxis-variables");
 
@@ -585,11 +606,14 @@ plotfit = (function(my, Plotly, d3) {
         yInputs.exit().remove();
         yInputs
           .on('input', function(d) {
-            yScale.updateVariable(d.key, this.value);
+            var scope = yScale.scope();
+            scope[d.key] = this.value;
+            yScale.scope(scope);
+
             redraw();
           });
 
-        var xScope = xScale.scope().entries();
+        var xScope = d3.entries(xScale.scope());
 
         var xVars = d3.select("#xaxis-variables");
 
@@ -619,7 +643,9 @@ plotfit = (function(my, Plotly, d3) {
         xInputs.exit().remove();
         xInputs
           .on('input', function(d) {
-            xScale.updateVariable(d.key, this.value);
+            var scope = xScale.scope();
+            scope[d.key] = this.value;
+            xScale.scope(scope);
             redraw();
           });
 
