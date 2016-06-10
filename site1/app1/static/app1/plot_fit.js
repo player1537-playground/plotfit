@@ -6,6 +6,7 @@ plotfit = (function(my, d3, math) {
 
     var parameters = [],
         scope = {},
+        defaultValue = 0,
         expr = null,
         compiled = null;
 
@@ -56,7 +57,7 @@ plotfit = (function(my, d3, math) {
         if (scope.hasOwnProperty(name)) {
           newScope[name] = scope[name];
         } else {
-          newScope[name] = 0;
+          newScope[name] = defaultValue;
         }
       });
       scope = newScope;
@@ -68,6 +69,12 @@ plotfit = (function(my, d3, math) {
       dispatch.expr.call(null, my);
       dispatch.change.call(null, my);
 
+      return my;
+    };
+
+    my.defaultValue = function(_) {
+      if (!arguments.length) return defaultValue;
+      defaultValue = _;
       return my;
     };
 
@@ -310,133 +317,51 @@ plotfit = (function(my, d3) {
 plotfit = (function(my, d3) {
   var fittings = d3.map();
 
-  fittings.set('Guinier', {
-    start: [1.0, 1.0],
-    min: [-1000.0, -1000.0],
-    max: [1000.0, 1000.0],
+  my.fitting = function fitting(dispatch) {
+    dispatch = dispatch || d3.dispatch.apply(null, [
+      'parameters', 'scope', 'expr', 'change', 'doFit',
+    ]);
 
-    evaluate: function(Q, params) {
-      var I0 = params[0],
-          RG = params[1],
-          inside = -1.0 / 3.0 * Math.pow(Q, 2.0) * Math.pow(RG, 2.0);
-      return I0 * Math.exp(inside);
-    },
+    var expression = plotfit.expression(dispatch)
+          .defaultValue(1)
+          .parameters(['X']);
 
-    constraints: function(tangled, fn, params) {
-      var I0 = params[0],
-          RG = params[1];
-      return [
-        I0, // >= 0 because ln(I0) can be taken
-        RG, // >= 0 because radius/distance is positive
-      ];
-    },
+    function my(data) {
+      var startingScope = expression.scope(),
+          paramNames = d3.keys(startingScope),
+          startingValues = paramNames.map(d => startingScope[d]),
+          results = null,
+          newScope = null;
 
-    params: function(params) {
-      return [
-        { codename: 'I0', prettyName: 'I0', value: params[0] },
-        { codename: 'RG', prettyName: 'RG', value: params[1] },
-      ];
-    }
-  });
+      data = data.filter(d => isFinite(d[0]) && isFinite(d[1]));
 
-  fittings.set('Porod', {
-    start: [1.0, 1.0, 1.0],
-    min: [-1000.0, -1000.0, -10.0],
-    max: [1000.0, 1000.0, 10.0],
+      function evaluate(x, params) {
+        var scope = {};
+        for (var i=0; i<params.length; ++i) {
+          scope[paramNames[i]] = params[i];
+        }
+        expression.scope(scope);
 
-    evaluate: function(Q, params) {
-      var A = params[0],
-          B = params[1],
-          n = params[2];
-      return A / Math.pow(Q, n) + B;
-    },
-
-    constraints: function(tangled, fn, params) {
-      var A = params[0],
-          B = params[1],
-          n = params[2];
-      return [
-      ];
-    },
-
-    params: function(params) {
-      return [
-        { codename: 'A', prettyName: 'A', value: params[0] },
-        { codename: 'B', prettyName: 'B', value: params[1] },
-        { codename: 'n', prettyName: 'n', value: params[2] },
-      ];
-    },
-  });
-
-  my.fitting = function fitting() {
-    var fittingName = "Guinier",
-        x = function(d) { return d.x; },
-        y = function(d) { return d.y; },
-        startValues,
-        firstFitting,
-        fitting;
-
-    function my(fullData, start, end) {
-      var dataInRange = fullData.filter((d, i) => start <= i && i < end),
-          xData = dataInRange.map(x),
-          yData = dataInRange.map(y),
-          tangledData = d3.zip(xData, yData),
-          fitResults;
-
-      for (var i=0; i == 0 || fitting.firstRun && i<1; ++i) {
-        fitResults = cobyla.nlFit(
-          tangledData, // data to fit against
-          fitting.evaluate, // function to fit with
-          startValues, // starting values for this function
-          fitting.min, // minimum values each parameter can take
-          fitting.max, // maximum values each parameter can take
-          fitting.constraints, // inequality constraints on parameters
-          { maxFun: firstFitting ? 200000 : 3500, rhoEnd: 1.0e-20 }
-        );
-      }
-
-      firstFitting = false;
-
-      var fn = fitting.evaluate,
-          params = fitResults.params;
-
-      function fitted(Q) {
-        return fn(Q, params);
-      }
-
-      fitted.domain = function(_) {
-        if (!arguments.length) return [start, end];
-        console.error("fitted.domain() not a setter");
-        return fitted;
+        return expression.call(null, x);
       };
 
-      fitted.params = fitting.params(params);
+      results = cobyla.nlFit(data, evaluate, startingValues);
+
+      newScope = {};
+      d3.zip(paramNames, results.params).forEach(function(d) {
+        newScope[d[0]] = d[1];
+      });
+      expression.scope(newScope);
+
+      function fitted(x) {
+        return expression.call(null, x);
+      };
 
       return fitted;
-    };
+    }
 
-    my.x = function(_) {
-      if (!arguments.length) return x;
-      x = _;
-      return my;
-    };
-
-    my.y = function(_) {
-      if (!arguments.length) return y;
-      y = _;
-      return my;
-    };
-
-    my.fittingName = function(_) {
-      if (!arguments.length) return fittingName;
-      fittingName = _;
-      fitting = fittings.get(fittingName);
-      startValues = fitting.start.slice();
-      firstFitting = true;
-      return my;
-    };
-
-    my.fittingName(my.fittingName());
+    my = d3.rebind(my, dispatch, 'on');
+    my = d3.rebind(my, expression, 'scope', 'expr');
 
     return my;
   };
@@ -660,9 +585,7 @@ plotfit = (function(my, Plotly, d3) {
           xScaleVC = plotfit.scaleVC().scale(xScale),
           yScale = plotfit.scale().expr('I'),
           yScaleVC = plotfit.scaleVC().scale(yScale),
-          fitting = plotfit.fitting()
-            .x(d => d.Q)
-            .y(d => d.I),
+          fitting = plotfit.fitting(),
           chart = plotfit.chart()
             .x(d => d.Q)
             .y(d => d.I)
@@ -672,6 +595,8 @@ plotfit = (function(my, Plotly, d3) {
             .xScale(xScale)
             .yScale(yScale),
           fittedFunction = null;
+
+      window.__fullData = fullData;
 
       d3.select("#x-axis-settings").datum({
         options: ['Q', 'log10(Q)', 'log(Q)', 'Q^2', 'Q^a'],
