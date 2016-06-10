@@ -390,8 +390,7 @@ plotfit = (function(my, Plotly, d3) {
         title = "PlotFit Chart",
         heightPercent = 80,
         fittedFunction = null,
-        fittedLegendName = "Fit",
-        yAxislogOrLinear = 'linear';
+        fittedLegendName = "Fit";
 
     function my(selection) {
       selection.each(function(fullData) {
@@ -401,7 +400,6 @@ plotfit = (function(my, Plotly, d3) {
             tangled = d3.zip(fullX, fullY),
             plottedX = tangled.map(d => xScale.apply(xScale, d)),
             plottedY = tangled.map(d => yScale.apply(yScale, d)),
-            plottedMinY = d3.min(plottedY.filter(d => yAxislogOrLinear === 'linear' || d > 0)),
             fittedY = null,
             trace = null,
             data;
@@ -456,7 +454,7 @@ plotfit = (function(my, Plotly, d3) {
             },
             yaxis: {
               autorange: true,
-              type: yAxislogOrLinear,
+              type: yScale.logOrLinear(),
             },
             title: title,
             showlegend: true,
@@ -492,7 +490,10 @@ plotfit = (function(my, Plotly, d3) {
             }
           }
 
-          Plotly.relayout(node, { 'xaxis.type': xScale.logOrLinear() });
+          Plotly.relayout(node, {
+            'xaxis.type': xScale.logOrLinear(),
+            'yaxis.type': yScale.logOrLinear(),
+          });
           Plotly.restyle(node, styleUpdates, [0]);
           Plotly.redraw(node);
 
@@ -587,6 +588,7 @@ plotfit = (function(my, Plotly, d3) {
           xScale = plotfit.scale().expr('Q'),
           xScaleVC = plotfit.scaleVC().scale(xScale),
           yScale = plotfit.scale().expr('I'),
+          yScaleVC = plotfit.scaleVC().scale(yScale),
           fitting = plotfit.fitting()
             .x(d => d.Q)
             .y(d => d.I),
@@ -600,72 +602,26 @@ plotfit = (function(my, Plotly, d3) {
             .yScale(yScale),
           fittedFunction = null;
 
-      d3.select("#foo").datum({
-        options: ['Q', 'log(Q)', 'Q^2', 'Q^a'],
+      d3.select("#x-axis-settings").datum({
+        options: ['Q', 'log10(Q)', 'log(Q)', 'Q^2', 'Q^a'],
         dropdownText: 'X = ',
       }).call(xScaleVC);
+
+      d3.select("#y-axis-settings").datum({
+        options: ['I', 'log10(I)', 'log(I)', '1/I', 'I^a', 'I*Q^a', 'I^a*Q^b',
+                  '1/sqrt(I)', 'log(I*Q)', 'log(I*Q^2)', 'log(I*Q+B)', ],
+        dropdownText: 'Y = ',
+      }).call(yScaleVC);
 
       xScale.on('change.main', function() {
         redraw();
       });
 
+      yScale.on('change.main', function() {
+        redraw();
+      });
+
       redraw();
-
-      $("#btn-xaxis-linear").on("click", function(eventData) {
-        chart.xAxislogOrLinear('linear');
-        $(".btn-xaxis").removeClass("active");
-        $(this).addClass("active");
-        redraw();
-      });
-
-      $("#btn-xaxis-log").on("click", function(eventData) {
-        chart.xAxislogOrLinear('log');
-        $(".btn-xaxis").removeClass("active");
-        $(this).addClass("active");
-        redraw();
-      });
-
-      $("#btn-yaxis-linear").on("click", function(eventData) {
-        chart.yAxislogOrLinear('linear');
-        $(".btn-yaxis").removeClass("active");
-        $(this).addClass("active");
-        redraw();
-      });
-
-      $("#btn-yaxis-log").on("click", function(eventData) {
-        chart.yAxislogOrLinear('log');
-        $(".btn-yaxis").removeClass("active");
-        $(this).addClass("active");
-        redraw();
-      });
-
-      $("#yaxis-preprocess ul li a").on("click", function() {
-        var val = $(this).attr('value');
-
-        $("#yaxis-preprocess input").val(val);
-        $("#yaxis-preprocess input").trigger('input');
-      });
-
-      $("#yaxis-preprocess input").on('input', function() {
-        var val = $(this).val();
-
-        yScale.expr($(this).val());
-        redraw();
-      });
-
-      $("#xaxis-preprocess ul li a").on("click", function() {
-        var val = $(this).attr('value');
-
-        $("#xaxis-preprocess input").val(val);
-        $("#xaxis-preprocess input").trigger('input');
-      });
-
-      $("#xaxis-preprocess input").on('input', function() {
-        var val = $(this).val();
-
-        xScale.expr($(this).val());
-        redraw();
-      });
 
       window.addEventListener('resize', function() {
         Plotly.Plots.resize(plotContainer.node());
@@ -686,10 +642,14 @@ plotfit = (function(my, Plotly, d3) {
       });
 
       $("#fitting-guinier").on('click', function() {
-        $("#yaxis-preprocess ul li a[value='I']").trigger('click');
-        $("#xaxis-preprocess ul li a[value='Q']").trigger('click');
-        $("#btn-yaxis-log").trigger('click');
-        $("#btn-xaxis-log").trigger('click');
+        yScale
+          .expr('I')
+          .logOrLinear('log');
+
+        xScale
+          .expr('Q')
+          .logOrLinear('log');
+
         fitting.fittingName('Guinier');
         selectData();
       });
@@ -705,10 +665,14 @@ plotfit = (function(my, Plotly, d3) {
       });
 
       $("#fitting-porod").on('click', function() {
-        $("#yaxis-preprocess input").val('I*Q').trigger('input');
-        $("#xaxis-preprocess input").val('Q').trigger('click');
-        $("#btn-yaxis-log").trigger('click');
-        $("#btn-xaxis-log").trigger('click');
+        yScale
+          .expr('I*Q')
+          .logOrLinear('log');
+
+        xScale
+          .expr('Q')
+          .logOrLinear('log');
+
         fitting.fittingName('Porod');
         selectData();
       });
@@ -717,44 +681,6 @@ plotfit = (function(my, Plotly, d3) {
         chart
           .fittedFunction(fittedFunction)
           .fittedLegendName(fitting.fittingName());
-
-        var yScope = d3.entries(yScale.scope());
-
-        var yVars = d3.select("#yaxis-variables");
-
-        var yGroups = yVars.selectAll('.form-group').data(yScope);
-        yGroups.enter().append('div')
-          .attr('class', 'form-group')
-          .style('margin-bottom', '0px');
-        yGroups.exit().remove();
-
-        var yLabels = yGroups.selectAll('label').data(d => [d]);
-        yLabels.enter().append('label')
-          .attr("class", "col-sm-6 col-xs-6 control-label text-right");
-        yLabels.exit().remove();
-        yLabels
-          .text(d => d.key);
-
-        var yWrappers = yGroups.selectAll('div').data(d => [d]);
-        yWrappers.enter().append('div')
-          .attr('class', 'col-sm-6 col-xs-6');
-        yWrappers.exit().remove();
-
-        var yInputs = yWrappers.selectAll('input').data(d => [d]);
-        yInputs.enter().append('input')
-          .attr('class', 'form-control')
-          .attr('type', 'text')
-          .attr('placeholder', '0')
-          .attr('name', d => d.key);
-        yInputs.exit().remove();
-        yInputs
-          .on('input', function(d) {
-            var scope = yScale.scope();
-            scope[d.key] = this.value;
-            yScale.scope(scope);
-
-            redraw();
-          });
 
         plotContainer.data([fullData])
           .call(chart);
