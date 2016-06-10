@@ -5,6 +5,17 @@
 {{block.super}}
 <script src="https://cdn.plot.ly/plotly-latest.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css" type="text/css" />
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/css/bootstrap-slider.min.css" />
+  <style type="text/css">
+
+  #plot_range_slider {
+    width: 100%;
+  }
+
+  #plot_range_slider .slider-selection {
+    background: #bababa;
+  }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -144,9 +155,12 @@
         <div id="plot_container" class="col-xs-12"></div>
       </div>
       <div class="row">
-        <div id="plot_range_slider" class="col-xs-12"></div>
-        <span id="plot_range_slider_min" style="position:relative;top:1.5em;left:-50%;"></span>
-        <span id="plot_range_slider_max" style="position:relative;top:1.5em;left:-50%;"></span>
+        <div class="col-xs-12">
+          <input type="text" class="span2" value="" id="plot_range"
+          data-slider-id="plot_range_slider" data-slider-min="0"
+          data-slider-max="100" data-slider-step="1" data-slider-value="[0,100]"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -160,6 +174,7 @@
 </script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/bootstrap-slider.min.js"></script>
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/CobylaLSFit.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/plot_fit.js' %}"></script>

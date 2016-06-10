@@ -507,20 +507,18 @@ plotfit = (function(my, Plotly, d3) {
         Plotly.Plots.resize(plotContainer.node());
       });
 
-      $("#plot_range_slider").slider({
-        range: true,
-        min: 0,
+      $("#plot_range").bootstrapSlider({
         max: fullData.length,
-        values: [0, fullData.length],
-        create: function() {
-          $("#plot_range_slider_min").appendTo($("#plot_range_slider .ui-slider-handle").get(0));
-          $("#plot_range_slider_max").appendTo($("#plot_range_slider .ui-slider-handle").get(1));
+        value: [0, fullData.length],
+        tooltip: 'always',
+        formatter: function(value) {
+          if (!value.length) { return ''; }
+          var first = fullData[value[0]].Q,
+              last = fullData[Math.min(fullData.length - 1, value[1])].Q;
+          return first.toString().substring(0,4) + ' : ' + last.toString().substring(0,4);
         },
-        slide: function(event, ui) {
-          $("#plot_range_slider_min").text(fullData[ui.values[0]].Q.toString().substring(0, 5));
-          $("#plot_range_slider_max").text(fullData[Math.min(fullData.length-1, ui.values[1])].Q.toString().substring(0, 5));
-          selectData(ui.values[0], ui.values[1]);
-        },
+      }).on("slide", function(ev) {
+        selectData(ev.value[0], ev.value[1]);
       });
 
       $("#fitting-guinier").on('click', function() {
