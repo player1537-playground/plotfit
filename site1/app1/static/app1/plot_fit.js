@@ -80,7 +80,7 @@ plotfit = (function(my, d3, math) {
       return my;
     };
 
-    my.copy = function() {
+    my.copy = function(_) {
       var scopeCopy = {};
       d3.entries(my.scope()).forEach(function(d) {
         scopeCopy[d.key] = d.value;
@@ -412,6 +412,10 @@ plotfit = (function(my, d3) {
       return my;
     };
 
+    expression.on('expr.fitting', function() {
+      refit();
+    });
+
     my = d3.rebind(my, dispatch, 'on');
     my = d3.rebind(my, expression, 'scope', 'expr');
 
@@ -709,6 +713,84 @@ plotfit = (function(my, Plotly, d3) {
 
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly, Plotly.d3);
 
+plotfit = (function(my, d3) {
+  var configurations = d3.map();
+
+  configurations.set('Reset', {
+    yScale: { expr: 'I' },
+    xScale: { expr: 'Q' },
+    fitting: { expr: '' },
+  });
+
+  configurations.set('Guinier', {
+    yScale: { expr: 'log(I)' },
+    xScale: { expr: 'log(Q)' },
+    fitting: { expr: '-Rg^2/3*X+b' },
+  });
+
+  configurations.set('Porod', {
+    yScale: { expr: 'log(I)' },
+    xScale: { expr: 'log(Q)' },
+    fitting: { expr: 'A-n*X' },
+  });
+
+  configurations.set('Zimm', {
+    yScale: { expr: '1/I' },
+    xScale: { expr: 'Q^2' },
+    fitting: { expr: '1/I0+Cl^2/I0*X' },
+  });
+
+  configurations.set('Kratky', {
+    yScale: { expr: 'log(Q^2*I)' },
+    xScale: { expr: 'log(Q)' },
+    fitting: { expr: 'm*X+b' },
+  });
+
+  my.configuration = function configuration() {
+    var xScale = null,
+        yScale = null,
+        fitting = null;
+
+    function my(name) {
+      var config = configurations.get(name);
+
+      fitting.active(false);
+      yScale.expr(config.yScale.expr);
+      xScale.expr(config.xScale.expr);
+      fitting.expr(config.fitting.expr);
+    }
+
+    my.xScale = function(_) {
+      if (!arguments.length) return xScale;
+      xScale = _;
+      return my;
+    };
+
+    my.yScale = function(_) {
+      if (!arguments.length) return yScale;
+      yScale = _;
+      return my;
+    };
+
+    my.fitting = function(_) {
+      if (!arguments.length) return fitting;
+      fitting = _;
+      return my;
+    };
+
+    my.names = function(_) {
+      if (!arguments.length) return configurations.keys();
+      console.error('configuration.names is not a setter');
+      return my;
+    };
+
+    return my;
+  };
+
+  return my;
+
+})(typeof plotfit==="undefined" ? {} : plotfit, Plotly.d3);
+
 (function() {
   var d3 = Plotly.d3;
 
@@ -728,7 +810,13 @@ plotfit = (function(my, Plotly, d3) {
             .y(d => d.I)
             .dev(d => d.dev)
             .heightPercent(80)
-            .colors(d => "blue")
+            .colors((d, i) => {
+              var domain = fitting.domain();
+              return domain[0] <= i && i < domain[1] ? 'blue' : 'steelblue';
+            }).xScale(xScale)
+            .yScale(yScale)
+            .fitting(fitting),
+          configuration = plotfit.configuration()
             .xScale(xScale)
             .yScale(yScale)
             .fitting(fitting);
@@ -763,6 +851,22 @@ plotfit = (function(my, Plotly, d3) {
       fitting.on('change.main', function() {
         redraw();
       });
+
+      d3.select("#foo").selectAll(".configuration")
+        .data(configuration.names())
+        .enter().append('div')
+        .attr('class', 'configuration btn-group-vertical')
+        .append('div')
+        .attr('class', 'btn-group')
+        .append('div')
+        .attr('class', 'btn-group btn-group-justified')
+        .append('div')
+        .attr('class', 'btn-group')
+        .append('button')
+        .attr('type', 'button')
+        .attr('class', 'btn btn-default')
+        .text(d => d)
+        .on('click', d => configuration(d));
 
       redraw();
 
