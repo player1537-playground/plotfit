@@ -55,15 +55,12 @@ plotfit = (function(my, d3, math) {
       var newScope = {};
       variables.forEach(function(name) {
         if (scope.hasOwnProperty(name)) {
-          console.log("Found", name, "=", scope[name]);
           newScope[name] = scope[name];
         } else {
           newScope[name] = defaultValue;
         }
       });
       scope = newScope;
-
-      console.log(_, variables, newScope);
 
       compiled = parsed.compile();
 
@@ -404,7 +401,6 @@ plotfit = (function(my, d3) {
 
     my.domain = function(_) {
       if (!arguments.length) return domain;
-      console.log("new domain", _);
       domain = _;
       refit();
       dispatch.domain.call(null, my);
@@ -612,11 +608,17 @@ plotfit = (function(my, Plotly, d3) {
             if (!hasPlottedTrace) {
               Plotly.addTraces(node, trace);
               hasPlottedTrace = true;
-            } else {
+            } else if (fitting.active()) {
               node.data[1].x = trace.x;
               node.data[1].y = trace.y;
               node.data[1].name = trace.name;
+            } else {
+              console.warn("What?");
             }
+          } else if (hasPlottedTrace) {
+            fittedY = null;
+            hasPlottedTrace = false;
+            Plotly.deleteTraces(node, [1]);
           }
 
           Plotly.relayout(node, {
