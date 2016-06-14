@@ -716,36 +716,48 @@ plotfit = (function(my, Plotly, d3) {
 })(typeof plotfit==="undefined" ? {} : plotfit, Plotly, Plotly.d3);
 
 plotfit = (function(my, d3) {
-  var configurations = d3.map();
+  var configurations = d3.map(),
+      keys = [];
 
-  configurations.set('Reset', {
+  function addConfiguration(key, value) {
+    configurations.set(key, value);
+    keys.push(key);
+  }
+
+  addConfiguration('Reset', {
     yScale: { expr: 'I' },
     xScale: { expr: 'Q' },
     fitting: { expr: '' },
   });
 
-  configurations.set('Guinier', {
+  addConfiguration('Guinier', {
     yScale: { expr: 'log(I)' },
     xScale: { expr: 'log(Q)' },
     fitting: { expr: '-Rg^2/3*X+b' },
   });
 
-  configurations.set('Porod', {
+  addConfiguration('Porod', {
     yScale: { expr: 'log(I)' },
     xScale: { expr: 'log(Q)' },
     fitting: { expr: 'A-n*X' },
   });
 
-  configurations.set('Zimm', {
+  addConfiguration('Zimm', {
     yScale: { expr: '1/I' },
     xScale: { expr: 'Q^2' },
     fitting: { expr: '1/I0+Cl^2/I0*X' },
   });
 
-  configurations.set('Kratky', {
+  addConfiguration('Kratky', {
     yScale: { expr: 'log(Q^2*I)' },
     xScale: { expr: 'log(Q)' },
     fitting: { expr: 'm*X+b' },
+  });
+
+  addConfiguration('Debye Beuche', {
+    yScale: { expr: 'sqrt(I)' },
+    xScale: { expr: 'Q^2' },
+    fitting: { expr: '' },
   });
 
   my.configuration = function configuration() {
@@ -781,7 +793,7 @@ plotfit = (function(my, d3) {
     };
 
     my.names = function(_) {
-      if (!arguments.length) return configurations.keys();
+      if (!arguments.length) return keys;
       console.error('configuration.names is not a setter');
       return my;
     };
