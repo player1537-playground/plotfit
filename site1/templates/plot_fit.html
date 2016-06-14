@@ -15,49 +15,115 @@
   #plot_range_slider .slider-selection {
     background: #bababa;
   }
+
+  #wrapper {
+      padding-left: 0;
+      /*-webkit-transition: all 0.5s ease;
+      -moz-transition: all 0.5s ease;
+      -o-transition: all 0.5s ease;
+      transition: all 0.5s ease;*/
+  }
+  #wrapper.toggled {
+      padding-left: 250px;
+  }
+  #sidebar-wrapper {
+      z-index: 1000;
+      position: fixed;
+      left: 250px;
+      width: 0;
+      height: 100%;
+      margin-left: -250px;
+      overflow-y: auto;
+      /*-webkit-transition: all 0.5s ease;
+      -moz-transition: all 0.5s ease;
+      -o-transition: all 0.5s ease;
+      transition: all 0.5s ease;*/
+      border-right: solid;
+  }
+  #wrapper.toggled #sidebar-wrapper {
+      width: 250px;
+  }
+  #page-content-wrapper {
+      width: 100%;
+      position: absolute;
+      padding: 15px;
+  }
+  #wrapper.toggled #page-content-wrapper {
+      position: absolute;
+      margin-right: -250px;
+  }
+  @media(min-width:768px) {
+      #wrapper {
+          padding-left: 250px;
+      }
+      #wrapper.toggled {
+          padding-left: 0;
+      }
+      #sidebar-wrapper {
+          width: 250px;
+      }
+      #wrapper.toggled #sidebar-wrapper {
+          width: 0;
+      }
+      #page-content-wrapper {
+          padding: 20px;
+          position: relative;
+      }
+      #wrapper.toggled #page-content-wrapper {
+          position: relative;
+          margin-right: 0;
+      }
+  }
   </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="container">
-  <h1>Plot using Plot.ly and some clever JavaScript</h1>
-  <p class="lead">Here we go...</p>
-</div>
+  <div id="wrapper">
+    <div id="sidebar-wrapper">
+      <div class="container-fluid">
 
-<div class="container">
-  <div class="row" style="border: 1px solid black">
-    <div id="plot_scale" class="col-md-3 col-sm-4">
-      <h3>Display Settings</h3>
-      <div class="btn-group-vertical">
+        <div class="row">
+          <div id="plot_scale" class="col-xs-12">
+            <h3>Display Settings</h3>
+            <div class="btn-group-vertical">
 
-        <div id="x-axis-settings"></div>
-        <div id="y-axis-settings"></div>
-        <div id="fitting-settings"></div>
+              <div id="x-axis-settings"></div>
+              <div id="y-axis-settings"></div>
+              <div id="fitting-settings"></div>
 
+            </div>
+
+            <h3>Configurations</h3>
+            <div id="foo"></div>
+          </div>
+        </div>
       </div>
-
-      <h3>Configurations</h3>
-      <div id="foo"></div>
-
     </div>
 
-    <div class="col-md-9 col-sm-8">
-      <!-- The actual plot contents -->
-      <div class="row">
-        <div id="plot_container" class="col-xs-12"></div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12">
-          <input type="text" class="span2" value="" id="plot_range"
-          data-slider-id="plot_range_slider" data-slider-min="0"
-          data-slider-max="100" data-slider-step="1" data-slider-value="[0,100]"
-          />
+    <div id="page-content-wrapper">
+      <a href="#menu-toggle" class="btn btn-default" id="menu-toggle"
+         data-toggle="tooltip" data-placement="right" title="Click to toggle the
+         file list sidebar.">
+        <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
+      </a>
+
+      <div class="container-fluid">
+        <!-- The actual plot contents -->
+        <div class="row">
+          <div id="plot_container" class="col-xs-12"></div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <input type="text" class="span2" value="" id="plot_range"
+                   data-slider-id="plot_range_slider" data-slider-min="0"
+                   data-slider-max="100" data-slider-step="1" data-slider-value="[0,100]"
+                   />
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
 {% endblock %}
 

@@ -876,6 +876,12 @@ plotfit = (function(my, d3) {
         Plotly.Plots.resize(plotContainer.node());
       });
 
+      d3.select("#menu-toggle").on('click', function() {
+        var wrapper = d3.select("#wrapper");
+        wrapper.classed("toggled", !wrapper.classed("toggled"));
+        Plotly.Plots.resize(plotContainer.node());
+      });
+
       $("#plot_range").bootstrapSlider({
         max: fullData.length,
         value: [0, fullData.length],
@@ -888,42 +894,6 @@ plotfit = (function(my, d3) {
         },
       }).on("slide", function(ev) {
         selectData(ev.value[0], ev.value[1]);
-      });
-
-      $("#fitting-guinier").on('click', function() {
-        yScale
-          .expr('I')
-          .logOrLinear('log');
-
-        xScale
-          .expr('Q')
-          .logOrLinear('log');
-
-        fitting.fittingName('Guinier');
-        selectData();
-      });
-
-      $("#fitting-kratky").on('click', function() {
-        fitting.fittingName('Kratky');
-        selectData();
-      });
-
-      $("#fitting-zimm").on('click', function() {
-        fitting.fittingName('Zimm');
-        selectData();
-      });
-
-      $("#fitting-porod").on('click', function() {
-        yScale
-          .expr('I*Q')
-          .logOrLinear('log');
-
-        xScale
-          .expr('Q')
-          .logOrLinear('log');
-
-        fitting.fittingName('Porod');
-        selectData();
       });
 
       function redraw() {
