@@ -18,15 +18,16 @@
 
   #wrapper {
       padding-left: 0;
-      /*-webkit-transition: all 0.5s ease;
-      -moz-transition: all 0.5s ease;
-      -o-transition: all 0.5s ease;
-      transition: all 0.5s ease;*/
+      padding-right: 0;
   }
-  #wrapper.toggled {
+  #wrapper.toggled-left {
       padding-left: 250px;
   }
-  #sidebar-wrapper {
+  #wrapper.toggled-right {
+      padding-right: 250px;
+  }
+
+  #sidebar-left-wrapper {
       z-index: 1000;
       position: fixed;
       left: 250px;
@@ -34,42 +35,79 @@
       height: 100%;
       margin-left: -250px;
       overflow-y: auto;
-      /*-webkit-transition: all 0.5s ease;
-      -moz-transition: all 0.5s ease;
-      -o-transition: all 0.5s ease;
-      transition: all 0.5s ease;*/
       border-right: solid;
   }
-  #wrapper.toggled #sidebar-wrapper {
+  #sidebar-right-wrapper {
+      z-index: 1000;
+      position: fixed;
+      right: 250px;
+      width: 0;
+      height: 100%;
+      margin-right: -250px;
+      overflow-y: auto;
+      border-left: solid;
+  }
+
+  #wrapper.toggled-left #sidebar-left-wrapper {
       width: 250px;
   }
+  #wrapper.toggled-right #sidebar-right-wrapper {
+      width: 250px;
+  }
+
   #page-content-wrapper {
       width: 100%;
       position: absolute;
       padding: 15px;
   }
-  #wrapper.toggled #page-content-wrapper {
+
+  #wrapper.toggled-left #page-content-wrapper {
       position: absolute;
       margin-right: -250px;
   }
+
+  #wrapper.toggled-right #page-content-wrapper {
+      position: absolute;
+      margin-right: -250px;
+  }
+
   @media(min-width:768px) {
       #wrapper {
           padding-left: 250px;
+          padding-right: 250px
       }
-      #wrapper.toggled {
+
+      #wrapper.toggled-left {
           padding-left: 0;
       }
-      #sidebar-wrapper {
+      #wrapper.toggled-right {
+          padding-right: 0;
+      }
+
+      #sidebar-left-wrapper {
           width: 250px;
       }
-      #wrapper.toggled #sidebar-wrapper {
+      #sidebar-right-wrapper {
+          width: 250px;
+      }
+
+      #wrapper.toggled-left #sidebar-left-wrapper {
           width: 0;
       }
+      #wrapper.toggled-right #sidebar-right-wrapper {
+          width: 0;
+      }
+
       #page-content-wrapper {
           padding: 20px;
           position: relative;
       }
-      #wrapper.toggled #page-content-wrapper {
+
+      #wrapper.toggled-left #page-content-wrapper {
+          position: relative;
+          margin-right: 0;
+      }
+      #wrapper.toggled-right #page-content-wrapper {
           position: relative;
           margin-right: 0;
       }
@@ -80,7 +118,7 @@
 {% block content %}
 
   <div id="wrapper">
-    <div id="sidebar-wrapper">
+    <div id="sidebar-left-wrapper">
       <div class="container-fluid">
 
         <div class="row">
@@ -101,10 +139,22 @@
       </div>
     </div>
 
+    <div id="sidebar-right-wrapper">
+      <h1>Hello world</h1>
+      <button type="button" class="btn btn-default">Yo</button>
+    </div>
+
+
     <div id="page-content-wrapper">
-      <a href="#menu-toggle" class="btn btn-default" id="menu-toggle"
-         data-toggle="tooltip" data-placement="right" title="Click to toggle the
-         file list sidebar.">
+      <a class="btn btn-default menu-toggle"
+         data-toggle-class="toggled-left" data-toggle="tooltip"
+         data-placement="right" title="Click to toggle the file list sidebar.">
+        <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
+      </a>
+
+      <a class="btn btn-default menu-toggle"
+         data-toggle-class="toggled-right" data-toggle="tooltip"
+         data-placement="left" title="Click to toggle the file list sidebar.">
         <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
       </a>
 
@@ -123,6 +173,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
 {% endblock %}

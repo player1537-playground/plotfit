@@ -384,7 +384,6 @@ plotfit = (function(my, d3) {
     my.active = function(_) {
       if (!arguments.length) return active;
       active = _;
-      refit();
       dispatch.active.call(null, my);
       dispatch.change.call(null, my);
       return my;
@@ -393,7 +392,6 @@ plotfit = (function(my, d3) {
     my.data = function(_) {
       if (!arguments.length) return data;
       data = _;
-      refit();
       dispatch.data.call(null, my);
       dispatch.change.call(null, my);
       return my;
@@ -402,15 +400,15 @@ plotfit = (function(my, d3) {
     my.domain = function(_) {
       if (!arguments.length) return domain;
       domain = _;
-      refit();
       dispatch.domain.call(null, my);
       dispatch.change.call(null, my);
       return my;
     };
 
-    expression.on('expr.fitting', function() {
+    my.recalculate = function() {
       refit();
-    });
+      return my;
+    };
 
     my = d3.rebind(my, dispatch, 'on');
     my = d3.rebind(my, expression, 'scope', 'expr');
@@ -768,10 +766,12 @@ plotfit = (function(my, d3) {
     function my(name) {
       var config = configurations.get(name);
 
-      fitting.active(false);
       yScale.expr(config.yScale.expr);
       xScale.expr(config.xScale.expr);
-      fitting.expr(config.fitting.expr);
+      fitting
+        .active(true)
+        .expr(config.fitting.expr)
+        .recalculate();
     }
 
     my.xScale = function(_) {
@@ -888,9 +888,10 @@ plotfit = (function(my, d3) {
         Plotly.Plots.resize(plotContainer.node());
       });
 
-      d3.select("#menu-toggle").on('click', function() {
-        var wrapper = d3.select("#wrapper");
-        wrapper.classed("toggled", !wrapper.classed("toggled"));
+      d3.selectAll(".menu-toggle").on('click', function() {
+        var wrapper = d3.select("#wrapper"),
+            className = d3.select(this).attr('data-toggle-class');
+        wrapper.classed(className, !wrapper.classed(className));
         Plotly.Plots.resize(plotContainer.node());
       });
 
@@ -905,30 +906,17 @@ plotfit = (function(my, d3) {
           return first.toString().substring(0,4) + ' : ' + last.toString().substring(0,4);
         },
       }).on("slide", function(ev) {
-        selectData(ev.value[0], ev.value[1]);
+        fitting
+          .domain([ev.value[0], ev.value[1]]);
+      }).on("slideStop", function(ev) {
+        fitting
+          .domain([ev.value[0], ev.value[1]])
+          .recalculate();
       });
 
       function redraw() {
         plotContainer.data([fullData])
           .call(chart);
       }
-
-      var selectDataOldStart = 0,
-          selectDataOldEnd = fullData.length;
-      function selectData(start, end) {
-        if (typeof start === 'undefined') {
-          start = selectDataOldStart;
-        }
-
-        if (typeof end === 'undefined') {
-          end = selectDataOldEnd;
-        }
-
-        selectDataOldStart = start;
-        selectDataOldEnd = end;
-
-        fitting.domain([start, end]);
-      }
-
     });
 })();
