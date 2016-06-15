@@ -191,7 +191,9 @@ class PlotIqSelectFile(TemplateView):
             "buffer_20p_4m_mtcell_Iq.txt", "buffer_30p_1o3m_mtcell_Iq.txt",
             "buffer_30p_4m_mtcell_Iq.txt", "buffer_40p_1o3m_mtcell_Iq.txt",
             "buffer_40p_4m_mtcell_Iq.txt", "buffer_90p_1o3m_mtcell_Iq.txt",
-            "buffer_90p_4m_mtcell_Iq.txt", "scan1_Iq.txt", "scan2_Iq.txt", ]
+            "buffer_90p_4m_mtcell_Iq.txt", "scan1_Iq.txt", "scan2_Iq.txt",
+                                 "porsil_2o5m_2o5A_raw.txt", "porsil_3m_10A_raw.txt",
+                                 "porsil_4m_10A_raw.txt", "porsil_5m_8A_raw.txt", ]
         return context
 
 class PlotAutoFitSelectFile(TemplateView):

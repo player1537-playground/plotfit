@@ -90,6 +90,23 @@ plotfit = (function(my, d3, math) {
         .scope(scopeCopy);
     };
 
+    my.textExpr = function(_) {
+      if (arguments.length) {
+        console.error('expr.textExpr is not a setter');
+        return my;
+      }
+
+      var parsed = math.parse(expr).transform(function(node, path, parent) {
+        if (node.isSymbolNode && !parameters.includes(node.name)) {
+          return new math.expression.node.ConstantNode(scope[node.name]);
+        } else {
+          return node;
+        }
+      });
+
+      return parsed.toString({ parenthesis: 'auto' });
+    };
+
     my = d3.rebind(my, dispatch, 'on');
 
     return my;
@@ -122,7 +139,7 @@ plotfit = (function(my, d3, math) {
     };
 
     my = d3.rebind(my, dispatch, 'on');
-    my = d3.rebind(my, expression, 'scope', 'expr');
+    my = d3.rebind(my, expression, 'scope', 'expr', 'textExpr');
 
     return my;
   };
@@ -331,6 +348,7 @@ plotfit = (function(my, d3) {
   my.fitting = function fitting(dispatch) {
     dispatch = dispatch || d3.dispatch.apply(null, [
       'parameters', 'scope', 'expr', 'change', 'active', 'data', 'domain',
+      'recalculate',
     ]);
 
     var expression = plotfit.expression(dispatch)
@@ -407,11 +425,13 @@ plotfit = (function(my, d3) {
 
     my.recalculate = function() {
       refit();
+      dispatch.recalculate.call(null, my);
+      dispatch.change.call(null, my);
       return my;
     };
 
     my = d3.rebind(my, dispatch, 'on');
-    my = d3.rebind(my, expression, 'scope', 'expr');
+    my = d3.rebind(my, expression, 'scope', 'expr', 'textExpr');
 
     return my;
   };
@@ -454,18 +474,26 @@ plotfit = (function(my, d3) {
 
           sidebarInput
             .on('dropdownSelected.fittingVC', function(d) {
-              fitting.expr(d);
+              fitting
+                .expr(d)
+                .recalculate();
 
             }).on('buttonPressed.fittingVC', function(d) {
-              fitting.active(!fitting.active());
+              fitting
+                .active(!fitting.active())
+                .recalculate();
 
             }).on('inputChanged.fittingVC', function(d) {
               var scope = fitting.scope();
               scope[d.name] = +this.value;
-              fitting.scope(scope);
+              fitting
+                .scope(scope)
+                .recalculate();
 
             }).on('textChanged.fittingVC', function(d) {
-              fitting.expr(d3.select(this).property('value'));
+              fitting
+                .expr(d3.select(this).property('value'))
+                .recalculate();
 
             });
         }
@@ -495,216 +523,248 @@ plotfit = (function(my, d3) {
 
 plotfit = (function(my, Plotly, d3) {
   my.chart = function chart() {
-    var hasInitialized = false,
-        hasPlottedTrace = false,
-        layoutUpdates = {},
-        styleUpdates = {},
-        x = function(d) { return d.x; },
-        y = function(d) { return d.y; },
-        dev = function(d) { return d.dev; },
-        xScale = function(X, Y) { return X; },
-        yScale = function(X, Y) { return Y; },
-        colors = function(d) { return "blue"; },
-        name = "PlotFit Data",
-        title = "PlotFit Chart",
-        heightPercent = 80,
-        fittedFunction = null,
-        fittedLegendName = "Fit",
-        fitting = null,
-        fitDomain = [0, Infinity];
+    var node = null,
+        data = null,
+        qData = null,
+        iData = null,
+        devData = null,
+        xScaled = null,
+        yScaled = null,
+        devScaled = null,
+        xFit = null,
+        yFit = null,
+        q = (d => d.Q),
+        i = (d => d.I),
+        dev = (d => d.dev),
+        xScale = plotfit.scale().expr('Q'),
+        yScale = plotfit.scale().expr('I'),
+        fitting = plotfit.fitting().expr('').active(false),
+        title = "Graph",
+        xLabel = "X Label",
+        yLabel = "Y Label",
+        dataName = "Data",
+        traceName = "Fit";
 
-    function my(selection) {
-      selection.each(function(fullData) {
-        var fullX = fullData.map(x),
-            fullY = fullData.map(y),
-            fullDev = fullData.map(dev),
-            tangled = d3.zip(fullX, fullY),
-            plottedX = tangled.map(d => xScale.apply(xScale, d)),
-            plottedY = tangled.map(d => yScale.apply(yScale, d)),
-            plottedTangled = d3.zip(plottedX, plottedY),
-            fittedY = null,
-            fittedX = null,
-            trace = null,
-            data;
+    function bindTo() {
+      var plotlyData = {
+        name: dataName,
+        x: xScaled,
+        y: yScaled,
+        mode: 'lines+markers',
+        marker: {
+          color: 'steelblue',
+        },
+        error_y: {
+          type: 'data',
+          array: devScaled,
+          thickness: 1.5,
+          width: 3,
+          opacity: 0.5,
+        },
+      };
 
-        data = {
-          name: name,
-          x: plottedX,
-          y: plottedY,
-          mode: 'lines+markers',
-          marker: {
-            color: tangled.map(colors),
-          },
-          error_y: {
-            type: 'data',
-            visible: true,
-            array: fullDev,
-            thickness: 1.5,
-            width: 3,
-            opacity: 0.5,
-          },
-        };
+      var plotlyTrace = {
+        name: traceName,
+        x: xFit,
+        y: yFit,
+        mode: 'lines',
+        visible: false,
+      };
 
-        if (fitting !== null && fitting.active()) {
-          var fittedDomain = fitting.domain(),
-              start = fittedDomain[0],
-              end = fittedDomain[1],
-              tangledFit = plottedTangled.filter((d, i) => start <= i && i < end);
-          fittedY = tangledFit.map(function(d) {
-            return fitting(d[0]);
-          });
-          fittedX = tangledFit.map(d => d[0]);
+      var plotlyLayout = {
+        xaxis: {
+          autorange: true,
+          type: 'linear',
+          title: xLabel,
+        },
+        yaxis: {
+          autorange: true,
+          type: 'linear',
+          title: yLabel,
+        },
+        title: title,
+        showlegend: true,
+        legend: {
+          orientation: 'h',
+        },
+      };
 
-          trace = {
-            x: fittedX,
-            y: fittedY,
-            name: fittedLegendName,
-            type: 'scatter',
-          };
-        }
+      var plotlyOptions = {
+        showLink: true,
+      };
 
+      Plotly.newPlot(node, [plotlyData, plotlyTrace], plotlyLayout, plotlyOptions);
+    }
 
-        var node = this;
+    function my() {
 
-        if (!hasInitialized) {
-          d3.select(node)
-            .style('height', heightPercent + 'vh');
-
-          var layout = {
-            xaxis: {
-              autorange: true,
-              type: xScale.logOrLinear(),
-            },
-            yaxis: {
-              autorange: true,
-              type: yScale.logOrLinear(),
-            },
-            title: title,
-            showlegend: true,
-            legend: {
-              orientation: 'h',
-            },
-          };
-
-          Plotly.newPlot(node, [data], layout, {showLink:true});
-
-          if (fittedY !== null && !hasPlottedTrace) {
-            Plotly.addTraces(node, trace);
-            hasPlottedTrace = true;
-          }
-
-          hasInitialized = true;
-
-        } else /* hasInitialized */ {
-          node.data[0].x = data.x;
-          node.data[0].y = data.y;
-          node.data[0].error_y.array = data.error_y.array;
-          node.data[0].name = data.name;
-          node.data[0].marker.color = data.marker.color;
-
-          if (fittedY !== null) {
-            if (!hasPlottedTrace) {
-              Plotly.addTraces(node, trace);
-              hasPlottedTrace = true;
-            } else if (fitting.active()) {
-              node.data[1].x = trace.x;
-              node.data[1].y = trace.y;
-              node.data[1].name = trace.name;
-            } else {
-              console.warn("What?");
-            }
-          } else if (hasPlottedTrace) {
-            fittedY = null;
-            hasPlottedTrace = false;
-            Plotly.deleteTraces(node, [1]);
-          }
-
-          Plotly.relayout(node, {
-            'xaxis.type': xScale.logOrLinear(),
-            'yaxis.type': yScale.logOrLinear(),
-          });
-          Plotly.restyle(node, styleUpdates, [0]);
-          Plotly.redraw(node);
-
-          layoutUpdates = {};
-          styleUpdates = {};
-        }
-
-      });
     };
 
-    my.x = function(_) {
-      if (!arguments.length) return x;
-      x = _;
+    my.data = function(_) {
+      if (!arguments.length) return data;
+      data = _;
+      qData = data.map(q);
+      iData = data.map(i);
+      devData = data.map(dev);
+      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
+      devScaled = d3.zip(qData, devData).map(d => yScale.apply(null, d));
       return my;
     };
 
-    my.y = function(_) {
-      if (!arguments.length) return y;
-      y = _;
+    my.bindTo = function(_) {
+      if (!arguments.length) return node;
+      node = _;
+      bindTo();
+      return my;
+    };
+
+    my.q = function(_) {
+      if (!arguments.length) return q;
+      q = _;
+      qData = data.map(q);
+      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
+      devScaled = d3.zip(qData, iData, devData).map(d => {
+        var yScaled = yScale.call(null, d[0], d[1]),
+            above = Math.abs(yScaled - yScale.call(null, d[0], d[1] + d[2])),
+            below = Math.abs(yScaled - yScale.call(null, d[0], d[1] - d[2]));
+
+        return Math.min(above, below);
+      });
+      return my;
+    };
+
+    my.i = function(_) {
+      if (!arguments.length) return i;
+      i = _;
+      iData = data.map(i);
+      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
       return my;
     };
 
     my.dev = function(_) {
       if (!arguments.length) return dev;
       dev = _;
+      devData = data.map(dev);
+      devScaled = d3.zip(qData, iData, devData).map(d => {
+        var yScaled = yScale.call(null, d[0], d[1]),
+            above = Math.abs(yScaled - yScale.call(null, d[0], d[1] + d[2])),
+            below = Math.abs(yScaled - yScale.call(null, d[0], d[1] - d[2]));
+
+        return Math.min(above, below);
+      });
       return my;
     };
 
     my.xScale = function(_) {
       if (!arguments.length) return xScale;
+      xScale.on('.chart', null);
       xScale = _;
+      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+      xScale.on('change.chart', function() {
+        xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+        node.data[0].x = xScaled;
+        Plotly.redraw(node);
+      });
       return my;
     };
 
     my.yScale = function(_) {
       if (!arguments.length) return yScale;
+      yScale.on('.chart', null);
       yScale = _;
+      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
+      devScaled = d3.zip(qData, devData).map(d => yScale.apply(null, d));
+      yScale.on('change.chart', function() {
+        yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
+        devScaled = d3.zip(qData, iData, devData).map(d => {
+          var yScaled = yScale.call(null, d[0], d[1]),
+              above = Math.abs(yScaled - yScale.call(null, d[0], d[1] + d[2])),
+              below = Math.abs(yScaled - yScale.call(null, d[0], d[1] - d[2]));
+
+          return Math.min(above, below);
+        });
+        node.data[0].y = yScaled;
+        node.data[0].error_y.array = devScaled;
+        Plotly.redraw(node);
+      });
       return my;
     };
 
-    my.name = function(_) {
-      if (!arguments.length) return name;
-      layoutUpdates.name = name;
+    my.fitting = function(_) {
+      if (!arguments.length) return fitting;
+      fitting.on('.chart', null);
+      fitting = _;
+      var domain = fitting.domain();
+      xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
+      yFit = xFit.map(fitting);
+      fitting.on('recalculate.chart active.chart', function() {
+        var domain = fitting.domain();
+        xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
+        yFit = xFit.map(fitting);
+        node.data[1].x = xFit;
+        node.data[1].y = yFit;
+        node.data[1].visible = fitting.active();
+        Plotly.redraw(node);
+      }).on('domain.chart', function() {
+        var domain = fitting.domain();
+        var colors = xScaled.map((d, i) => (domain[0] <= i && i < domain[1]) ? 'blue' : 'steelblue');
+        Plotly.restyle(node, {
+          'marker.color': [colors],
+        }, [0]);
+      });
+
       return my;
     };
 
     my.title = function(_) {
       if (!arguments.length) return title;
       title = _;
-      layoutUpdates.title = _;
+      if (node !== null) {
+        Plotly.relayout(node, { title: title });
+      }
       return my;
     };
 
-    my.heightPercent = function(_) {
-      if (!arguments.length) return heightPercent;
-      heightPercent = _;
+    my.xLabel = function(_) {
+      if (!arguments.length) return xLabel;
+      xLabel = _;
+      if (node !== null) {
+        Plotly.relayout(node, { 'xaxis.title': xLabel });
+      }
       return my;
     };
 
-    my.fitting = function(_) {
-      if (!arguments.length) return fitting;
-      fitting = _;
+    my.yLabel = function(_) {
+      if (!arguments.length) return yLabel;
+      yLabel = _;
+      if (node !== null) {
+        Plotly.relayout(node, { 'yaxis.title': yLabel });
+      }
       return my;
     };
 
-    my.fittedLegendName = function(_) {
-      if (!arguments.length) return fittedLegendName;
-      fittedLegendName = _;
+    my.dataName = function(_) {
+      if (!arguments.length) return dataName;
+      dataName = _;
+      if (node !== null) {
+        Plotly.restyle(node, { name: dataName }, [0]);
+      }
       return my;
     };
 
-    my.colors = function(_) {
-      if (!arguments.length) return colors;
-      colors = _;
+    my.traceName = function(_) {
+      if (!arguments.length) return traceName;
+      traceName = _;
+      if (node !== null) {
+        Plotly.restyle(node, { name: traceName }, [1]);
+      }
       return my;
     };
 
-    my.fitDomain = function(_) {
-      if (!arguments.length) return fitDomain;
-      fitDomain = _;
-      return my;
-    };
+
 
     return my;
   };
@@ -725,37 +785,38 @@ plotfit = (function(my, d3) {
   addConfiguration('Reset', {
     yScale: { expr: 'I' },
     xScale: { expr: 'Q' },
-    fitting: { expr: '' },
+    fitting: { expr: '', active: false },
   });
 
   addConfiguration('Guinier', {
     yScale: { expr: 'log(I)' },
     xScale: { expr: 'log(Q)' },
-    fitting: { expr: '-Rg^2/3*X+b' },
+    fitting: { expr: '-Rg^2/3*X+b', active: true },
   });
 
   addConfiguration('Porod', {
     yScale: { expr: 'log(I)' },
     xScale: { expr: 'log(Q)' },
-    fitting: { expr: 'A-n*X' },
+    fitting: { expr: 'A-n*X', active: true },
   });
 
   addConfiguration('Zimm', {
     yScale: { expr: '1/I' },
     xScale: { expr: 'Q^2' },
-    fitting: { expr: '1/I0+Cl^2/I0*X' },
+    fitting: { expr: '1/I0+Cl^2/I0*X', active: true },
   });
+
 
   addConfiguration('Kratky', {
     yScale: { expr: 'log(Q^2*I)' },
     xScale: { expr: 'log(Q)' },
-    fitting: { expr: 'm*X+b' },
+    fitting: { expr: 'm*X+b', active: true },
   });
 
   addConfiguration('Debye Beuche', {
     yScale: { expr: 'sqrt(I)' },
     xScale: { expr: 'Q^2' },
-    fitting: { expr: 'm*X+I0' },
+    fitting: { expr: 'm*X+I0', active: true },
   });
 
   my.configuration = function configuration() {
@@ -769,7 +830,7 @@ plotfit = (function(my, d3) {
       yScale.expr(config.yScale.expr);
       xScale.expr(config.xScale.expr);
       fitting
-        .active(true)
+        .active(config.fitting.active)
         .expr(config.fitting.expr)
         .recalculate();
     }
@@ -811,7 +872,8 @@ plotfit = (function(my, d3) {
   Plotly.d3.csv(filename)
     .row(function(d) { return { Q: +d.Q, I: +d.I, dev: +d.dev }; })
     .get(function(error, fullData) {
-      var plotContainer = d3.select("#plot_container"),
+      var plotContainer = d3.select("#plot_container")
+            .style('height', '80vh'),
           xScale = plotfit.scale().expr('Q'),
           xScaleVC = plotfit.scaleVC().scale(xScale),
           yScale = plotfit.scale().expr('I'),
@@ -820,16 +882,14 @@ plotfit = (function(my, d3) {
             .data(fullData.map(d => [xScale(d.Q, d.I), yScale(d.Q, d.I)])),
           fittingVC = plotfit.fittingVC().fitting(fitting),
           chart = plotfit.chart()
-            .x(d => d.Q)
-            .y(d => d.I)
+            .data(fullData)
+            .q(d => d.Q)
+            .i(d => d.I)
             .dev(d => d.dev)
-            .heightPercent(80)
-            .colors((d, i) => {
-              var domain = fitting.domain();
-              return domain[0] <= i && i < domain[1] ? 'blue' : 'steelblue';
-            }).xScale(xScale)
+            .xScale(xScale)
             .yScale(yScale)
-            .fitting(fitting),
+            .fitting(fitting)
+            .bindTo(plotContainer.node());
           configuration = plotfit.configuration()
             .xScale(xScale)
             .yScale(yScale)
@@ -853,17 +913,25 @@ plotfit = (function(my, d3) {
       }).call(fittingVC);
 
       xScale.on('change.main', function() {
-        redraw();
         fitting.data(fullData.map(d => [xScale(d.Q, d.I), yScale(d.Q, d.I)]));
+      }).on('scope.main expr.main', function() {
+        var xLabel = xScale.textExpr(),
+            yLabel = yScale.textExpr();
+
+        chart
+          .xLabel(xLabel)
+          .title(yLabel + ' vs ' + xLabel);
       });
 
       yScale.on('change.main', function() {
-        redraw();
         fitting.data(fullData.map(d => [xScale(d.Q, d.I), yScale(d.Q, d.I)]));
-      });
+      }).on('scope.main expr.main', function() {
+        var xLabel = xScale.textExpr(),
+            yLabel = yScale.textExpr();
 
-      fitting.on('change.main', function() {
-        redraw();
+        chart
+          .yLabel(yLabel)
+          .title(yLabel + ' vs ' + xLabel);
       });
 
       d3.select("#foo").selectAll(".configuration")
@@ -881,8 +949,6 @@ plotfit = (function(my, d3) {
         .attr('class', 'btn btn-default')
         .text(d => d)
         .on('click', d => configuration(d));
-
-      redraw();
 
       window.addEventListener('resize', function() {
         Plotly.Plots.resize(plotContainer.node());
@@ -914,9 +980,6 @@ plotfit = (function(my, d3) {
           .recalculate();
       });
 
-      function redraw() {
-        plotContainer.data([fullData])
-          .call(chart);
-      }
+      configuration('Reset');
     });
 })();

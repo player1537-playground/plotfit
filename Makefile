@@ -52,9 +52,21 @@ raw/Original/.INTERMEDIATE: Original.tar.gz
 	tar xf $< -C $(dir $@)
 	touch $@
 
-site1/app1/static/data/.INTERMEDIATE: sectioned/IPTS-15041/.INTERMEDIATE sectioned/IPTS-11354/.INTERMEDIATE raw/Original/.INTERMEDIATE
+raw/Changwoo/.INTERMEDIATE: Porsil.tar.gz
+	mkdir -p $(dir $@)
+	tar xf $< -C $(dir $@)
+	touch $@
+
+sectioned/Changwoo/.INTERMEDIATE: raw/Porsil/.INTERMEDIATE
+	mkdir -p $(dir $@)
+	for f in $(dir $<)*.txt; do \
+		awk 'BEGIN { FS=","; OFS=","; print "Q","I","dev"; } NR > 2 { print $$1,$$2,$$3; }' $$f > $(dir $@)$${f##*/}; \
+	done
+	touch $@
+
+site1/app1/static/data/.INTERMEDIATE: sectioned/IPTS-15041/.INTERMEDIATE sectioned/IPTS-11354/.INTERMEDIATE raw/Original/.INTERMEDIATE sectioned/Changwoo/.INTERMEDIATE
 	@mkdir -p $(dir $@)
-	find $(dir $^) -name '*_Iq.txt' -exec cp {} $(dir $@) \;
+	find $(dir $^) -name '*_Iq.txt' -or -name 'porsil*_raw.txt' -exec cp {} $(dir $@) \;
 	touch $@
 
 
