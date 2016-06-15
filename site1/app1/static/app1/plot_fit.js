@@ -90,7 +90,7 @@ plotfit = (function(my, d3, math) {
         .scope(scopeCopy);
     };
 
-    my.textExpr = function(_) {
+    my.textExpr = function() {
       if (arguments.length) {
         console.error('expr.textExpr is not a setter');
         return my;
@@ -105,6 +105,25 @@ plotfit = (function(my, d3, math) {
       });
 
       return parsed.toString({ parenthesis: 'auto' });
+    };
+
+    my.serialize = function(_) {
+      if (!arguments.length) {
+        return {
+          parameters: my.parameters(),
+          scope: my.scope(),
+          defaultValue: my.defaultValue(),
+          expr: my.expr(),
+        };
+      }
+
+      my
+        .defaultValue(_.defaultValue)
+        .parameters(_.parameters)
+        .expr(_.expr)
+        .scope(_.scope);
+
+      return my;
     };
 
     my = d3.rebind(my, dispatch, 'on');
@@ -135,6 +154,20 @@ plotfit = (function(my, d3, math) {
       logOrLinear = _;
       dispatch.logOrLinear.call(null, my);
       dispatch.change.call(null, my);
+      return my;
+    };
+
+    my.serialize = function(_) {
+      if (!arguments.length) {
+        return {
+          expression: expression.serialize(),
+          logOrLinear: logOrLinear,
+        };
+      }
+
+      expression.serialize(_.expression);
+      my.logOrLinear(_.logOrLinear);
+
       return my;
     };
 
@@ -188,8 +221,7 @@ plotfit = (function(my, d3) {
           li.enter().append('li');
 
           var a = li.selectAll('a').data(d => [d]);
-          a.enter().append('a')
-            .attr('href', '#');
+          a.enter().append('a');
           a
             .attr('value', d => d)
             .text(d => d)
@@ -430,6 +462,23 @@ plotfit = (function(my, d3) {
       return my;
     };
 
+    my.serialize = function(_) {
+      if (!arguments.length) {
+        return {
+          expression: expression.serialize(),
+          active: active,
+          domain: domain,
+        };
+      }
+
+      my
+        .active(_.active)
+        .domain(_.domain);
+      expression.serialize(_.expression);
+
+      return my;
+    };
+
     my = d3.rebind(my, dispatch, 'on');
     my = d3.rebind(my, expression, 'scope', 'expr', 'textExpr');
 
@@ -619,53 +668,19 @@ plotfit = (function(my, Plotly, d3) {
       return my;
     };
 
-    my.q = function(_) {
-      if (!arguments.length) return q;
-      q = _;
-      qData = data.map(q);
-      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
-      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
-      devScaled = d3.zip(qData, iData, devData).map(d => {
-        var yScaled = yScale.call(null, d[0], d[1]),
-            above = Math.abs(yScaled - yScale.call(null, d[0], d[1] + d[2])),
-            below = Math.abs(yScaled - yScale.call(null, d[0], d[1] - d[2]));
-
-        return Math.min(above, below);
-      });
-      return my;
-    };
-
-    my.i = function(_) {
-      if (!arguments.length) return i;
-      i = _;
-      iData = data.map(i);
-      xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
-      yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
-      return my;
-    };
-
-    my.dev = function(_) {
-      if (!arguments.length) return dev;
-      dev = _;
-      devData = data.map(dev);
-      devScaled = d3.zip(qData, iData, devData).map(d => {
-        var yScaled = yScale.call(null, d[0], d[1]),
-            above = Math.abs(yScaled - yScale.call(null, d[0], d[1] + d[2])),
-            below = Math.abs(yScaled - yScale.call(null, d[0], d[1] - d[2]));
-
-        return Math.min(above, below);
-      });
-      return my;
-    };
-
     my.xScale = function(_) {
       if (!arguments.length) return xScale;
       xScale.on('.chart', null);
       xScale = _;
       xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
       xScale.on('change.chart', function() {
+        var domain = fitting.domain();
         xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
+        xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
+        yFit = xFit.map(fitting);
         node.data[0].x = xScaled;
+        node.data[1].x = xFit;
+        node.data[1].y = yFit;
         Plotly.redraw(node);
       });
       return my;
@@ -859,6 +874,22 @@ plotfit = (function(my, d3) {
       return my;
     };
 
+    my.serialize = function(_) {
+      if (!arguments.length) {
+        return {
+          xScale: xScale.serialize(),
+          yScale: yScale.serialize(),
+          fitting: fitting.serialize(),
+        };
+      }
+
+      fitting.serialize(_.fitting);
+      xScale.serialize(_.xScale);
+      yScale.serialize(_.yScale);
+
+      return my;
+    };
+
     return my;
   };
 
@@ -883,9 +914,6 @@ plotfit = (function(my, d3) {
           fittingVC = plotfit.fittingVC().fitting(fitting),
           chart = plotfit.chart()
             .data(fullData)
-            .q(d => d.Q)
-            .i(d => d.I)
-            .dev(d => d.dev)
             .xScale(xScale)
             .yScale(yScale)
             .fitting(fitting)
@@ -896,6 +924,7 @@ plotfit = (function(my, d3) {
             .fitting(fitting);
 
       window.__fullData = fullData;
+      window.__configuration = configuration;
 
       d3.select("#x-axis-settings").datum({
         options: ['Q', 'log10(Q)', 'log(Q)', 'Q^2', 'Q^a'],
