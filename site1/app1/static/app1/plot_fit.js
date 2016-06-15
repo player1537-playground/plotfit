@@ -755,7 +755,7 @@ plotfit = (function(my, d3) {
   addConfiguration('Debye Beuche', {
     yScale: { expr: 'sqrt(I)' },
     xScale: { expr: 'Q^2' },
-    fitting: { expr: '' },
+    fitting: { expr: 'm*X+I0' },
   });
 
   my.configuration = function configuration() {
