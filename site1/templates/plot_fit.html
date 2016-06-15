@@ -35,7 +35,7 @@
       height: 100%;
       margin-left: -250px;
       overflow-y: auto;
-      border-right: solid;
+      border-right: none;
   }
   #sidebar-right-wrapper {
       z-index: 1000;
@@ -45,14 +45,16 @@
       height: 100%;
       margin-right: -250px;
       overflow-y: auto;
-      border-left: solid;
+      border-left: none;
   }
 
   #wrapper.toggled-left #sidebar-left-wrapper {
       width: 250px;
+      border-right: solid;
   }
   #wrapper.toggled-right #sidebar-right-wrapper {
       width: 250px;
+      border-left: solid;
   }
 
   #page-content-wrapper {
@@ -86,16 +88,20 @@
 
       #sidebar-left-wrapper {
           width: 250px;
+          border-right: solid;
       }
       #sidebar-right-wrapper {
           width: 250px;
+          border-left: solid;
       }
 
       #wrapper.toggled-left #sidebar-left-wrapper {
           width: 0;
+          border-right: none;
       }
       #wrapper.toggled-right #sidebar-right-wrapper {
           width: 0;
+          border-left: none;
       }
 
       #page-content-wrapper {
