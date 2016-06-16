@@ -405,7 +405,7 @@ plotfit = (function(my, d3) {
 
     function refit() {
       if (data === null || !active) {
-        return;
+        return -1;
       }
 
       var start = domain[0],
@@ -430,14 +430,17 @@ plotfit = (function(my, d3) {
         return expressionCopy.call(null, x);
       };
 
-
       results = cobyla.nlFit(currentData, evaluate, startingValues, undefined, undefined, undefined, { maxFun: 10000, rhoStart: 1000 });
+
+      console.log(results);
 
       newScope = {};
       d3.zip(paramNames, results.params).forEach(function(d) {
         newScope[d[0]] = d[1];
       });
       expression.scope(newScope);
+
+      return results.status;
     };
 
     function my(x) {
@@ -482,9 +485,14 @@ plotfit = (function(my, d3) {
           worker.postMessage(serialized);
         }
       } else {
-        refit();
-        dispatch.recalculate.call(null, my);
-        dispatch.change.call(null, my);
+        var i = 0;
+        do {
+          var status = refit();
+          refit();
+          dispatch.recalculate.call(null, my);
+          dispatch.change.call(null, my);
+          i++;
+        } while (i < 10 && status === cobyla.maxIterationsReached);
       }
       return my;
     };
