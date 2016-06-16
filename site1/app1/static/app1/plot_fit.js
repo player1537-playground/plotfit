@@ -442,6 +442,10 @@ plotfit = (function(my, d3) {
     my.data = function(_) {
       if (!arguments.length) return data;
       data = _;
+      if (data.length < domain[1]) {
+        domain = [domain[0], data.length];
+        dispatch.domain.call(null, my);
+      }
       dispatch.data.call(null, my);
       dispatch.change.call(null, my);
       return my;
@@ -471,10 +475,10 @@ plotfit = (function(my, d3) {
         };
       }
 
+      expression.serialize(_.expression);
       my
         .active(_.active)
         .domain(_.domain);
-      expression.serialize(_.expression);
 
       return my;
     };
@@ -674,6 +678,7 @@ plotfit = (function(my, Plotly, d3) {
       xScale = _;
       xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
       xScale.on('change.chart', function() {
+        console.log('xScale.on change.chart', xScale.serialize());
         var domain = fitting.domain();
         xScaled = d3.zip(qData, iData).map(d => xScale.apply(null, d));
         xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
@@ -693,6 +698,7 @@ plotfit = (function(my, Plotly, d3) {
       yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
       devScaled = d3.zip(qData, devData).map(d => yScale.apply(null, d));
       yScale.on('change.chart', function() {
+        console.log('yScale.on change.chart', yScale.serialize());
         yScaled = d3.zip(qData, iData).map(d => yScale.apply(null, d));
         devScaled = d3.zip(qData, iData, devData).map(d => {
           var yScaled = yScale.call(null, d[0], d[1]),
@@ -715,7 +721,8 @@ plotfit = (function(my, Plotly, d3) {
       var domain = fitting.domain();
       xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
       yFit = xFit.map(fitting);
-      fitting.on('recalculate.chart active.chart', function() {
+      function onRecalculateAndActive() {
+        console.log('fitting.on recalculate.chart active.chart', fitting.serialize());
         var domain = fitting.domain();
         xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
         yFit = xFit.map(fitting);
@@ -723,13 +730,18 @@ plotfit = (function(my, Plotly, d3) {
         node.data[1].y = yFit;
         node.data[1].visible = fitting.active();
         Plotly.redraw(node);
-      }).on('domain.chart', function() {
-        var domain = fitting.domain();
-        var colors = xScaled.map((d, i) => (domain[0] <= i && i < domain[1]) ? 'blue' : 'steelblue');
-        Plotly.restyle(node, {
-          'marker.color': [colors],
-        }, [0]);
-      });
+      }
+      fitting
+        .on('recalculate.chart', onRecalculateAndActive)
+        .on('active.chart', onRecalculateAndActive)
+        .on('domain.chart', function() {
+          console.log('fitting.on domain.chart', fitting.serialize());
+          var domain = fitting.domain();
+          var colors = xScaled.map((d, i) => (domain[0] <= i && i < domain[1]) ? 'blue' : 'steelblue');
+          Plotly.restyle(node, {
+            'marker.color': [colors],
+          }, [0]);
+        });
 
       return my;
     };
@@ -883,9 +895,9 @@ plotfit = (function(my, d3) {
         };
       }
 
-      fitting.serialize(_.fitting);
       xScale.serialize(_.xScale);
       yScale.serialize(_.yScale);
+      fitting.serialize(_.fitting);
 
       return my;
     };
@@ -978,6 +990,20 @@ plotfit = (function(my, d3) {
         .attr('class', 'btn btn-default')
         .text(d => d)
         .on('click', d => configuration(d));
+
+      d3.select("#save-and-reload").selectAll("button")
+        .on("click", function() {
+          var action = d3.select(this).attr('data-action');
+          if (action === 'save') {
+            window.location.hash = btoa(JSON.stringify(configuration.serialize()));
+          } else if (action === 'reload') {
+            configuration.serialize(JSON.parse(atob(window.location.hash.substring(1))));
+          } else if (action === 'clear') {
+            window.location.hash = '';
+          } else {
+            console.error('Unexpected:', action);
+          }
+        });
 
       window.addEventListener('resize', function() {
         Plotly.Plots.resize(plotContainer.node());
