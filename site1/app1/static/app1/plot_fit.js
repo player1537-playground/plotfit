@@ -1126,6 +1126,57 @@ plotfit = (function(my, d3) {
         $("#plot_range").bootstrapSlider('setValue', fitting.domain());
       });
 
+      (function() {
+        var csvs = [fullData],
+            plots = d3.selectAll(".bar").datum(d => csvs[0]),
+            bbox = plots.node().getBoundingClientRect(),
+            width = bbox.width - 2 * 10,
+            height = bbox.height - 2 * 8,
+            x = (d => d.Q),
+            y = (d => d.I),
+            xScale = d3.scale.linear().range([0, width]).domain([
+              d3.min(csvs.map(d => d3.min(d, x))),
+              d3.max(csvs.map(d => d3.max(d, x))),
+            ]),
+            yScale = d3.scale.linear().range([height, 0]).domain([
+              d3.min(csvs.map(d => d3.min(d, y))),
+              d3.max(csvs.map(d => d3.max(d, y))),
+            ]),
+            line = d3.svg.line().x(d => xScale(x(d))).y(d => yScale(y(d)));
+
+        console.log(bbox);
+
+        var svgs = plots.selectAll("svg").data(d => [d]);
+        svgs.enter().append('svg')
+          .attr('width', width)
+          .attr('height', height);
+
+        var paths = svgs.selectAll("path").data(d => [d]);
+        paths.enter().append('path')
+          .attr('stroke-width', 1)
+          .attr('fill', 'none')
+          .attr('stroke', 'black');
+        paths
+          .attr("d", function(d) {
+            var xScale = d3.scale.linear()
+                  .range([0, width])
+                  .domain(d3.extent(d, x));
+
+            var yScale = d3.scale.linear()
+                  .range([height, 0])
+                  .domain(d3.extent(d, y));
+
+            var line = d3.svg.line()
+                  .x(dd => xScale(x(dd)))
+                  .y(dd => yScale(y(dd)));
+
+              //console.log(xScale.domain(), yScale.domain(), d);
+
+              return line(d);
+          });
+
+      })();
+
       configuration('Reset');
     });
 })();

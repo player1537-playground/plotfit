@@ -38,7 +38,7 @@
       border-right: none;
   }
   #sidebar-right-wrapper {
-      z-index: 1000;
+      z-index: 1002;
       position: fixed;
       right: 250px;
       width: 0;
@@ -46,6 +46,7 @@
       margin-right: -250px;
       overflow-y: auto;
       border-left: none;
+      background-color: white;
   }
 
   #wrapper.toggled-left #sidebar-left-wrapper {
@@ -91,7 +92,7 @@
           border-right: solid;
       }
       #sidebar-right-wrapper {
-          width: 250px;
+          width: 500px;
           border-left: solid;
       }
 
@@ -169,8 +170,53 @@
     </div>
 
     <div id="sidebar-right-wrapper">
-      <h1>Hello world</h1>
-      <button type="button" class="btn btn-default">Yo</button>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-xs-12">
+
+            <div class="input-group input-group-lg">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default btn-lg">
+                  <span class="glyphicon glyphicon-chevron-left" />
+                </button>
+                <div class="btn btn-lg bar" style="padding:5px 8px;width:52px;border:1px solid rgb(204, 204, 204);margin-left:0px;"></div>
+              </div>
+              <input type="text" class="form-control" placeholder="{{ filename }}"/>
+            </div>
+
+            <div class="input-group input-group-lg">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default btn-lg">
+                  <span class="glyphicon glyphicon-chevron-left" />
+                </button>
+                <div class="btn btn-lg bar" style="padding:5px 8px;width:52px;border:1px solid rgb(204, 204, 204);margin-left:0px;"></div>
+              </div>
+              <input type="text" class="form-control" placeholder="{{ filename }}"/>
+            </div>
+
+            <div class="input-group input-group-lg">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default btn-lg">
+                  <span class="glyphicon glyphicon-chevron-left" />
+                </button>
+                <div class="btn btn-lg bar" style="padding:5px 8px;width:52px;border:1px solid rgb(204, 204, 204);margin-left:0px;"></div>
+              </div>
+              <input type="text" class="form-control" placeholder="{{ filename }}"/>
+            </div>
+
+            <div class="input-group input-group-lg">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default btn-lg">
+                  <span class="glyphicon glyphicon-chevron-left" />
+                </button>
+                <div class="btn btn-lg bar" style="padding:5px 8px;width:52px;border:1px solid rgb(204, 204, 204);margin-left:0px;"></div>
+              </div>
+              <input type="text" class="form-control" placeholder="{{ filename }}"/>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
 
 
