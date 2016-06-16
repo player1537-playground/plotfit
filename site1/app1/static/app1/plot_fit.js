@@ -725,6 +725,13 @@ plotfit = (function(my, Plotly, d3) {
       };
 
       Plotly.newPlot(node, [plotlyData, plotlyTrace], plotlyLayout, plotlyOptions);
+      node.on('plotly_selected', function(eventData) {
+        if (typeof eventData === 'undefined') {
+          return;
+        }
+
+        fitting.domain(d3.extent(eventData.points, d => d.pointNumber));
+      });
     }
 
     function my() {
