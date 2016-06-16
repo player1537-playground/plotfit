@@ -388,7 +388,8 @@ plotfit = (function(my, d3) {
           .parameters(['X']),
         active = false,
         data = null,
-        domain = [0, Infinity];
+        domain = [0, Infinity],
+        worker = null;
 
     function refit() {
       if (data === null || !active) {
@@ -418,7 +419,7 @@ plotfit = (function(my, d3) {
       };
 
 
-      results = cobyla.nlFit(currentData, evaluate, startingValues, undefined, undefined, undefined, { maxFun: 100 });
+      results = cobyla.nlFit(currentData, evaluate, startingValues, undefined, undefined, undefined, { maxFun: 10000 });
 
       newScope = {};
       d3.zip(paramNames, results.params).forEach(function(d) {
@@ -460,9 +461,63 @@ plotfit = (function(my, d3) {
     };
 
     my.recalculate = function() {
-      refit();
-      dispatch.recalculate.call(null, my);
-      dispatch.change.call(null, my);
+      if (worker !== null) {
+        var serialized = my.serialize();
+        serialized.data = data;
+        console.log("Sending to worker", serialized);
+        worker.postMessage(serialized);
+      } else {
+        refit();
+        dispatch.recalculate.call(null, my);
+        dispatch.change.call(null, my);
+      }
+      return my;
+    };
+
+    my.registerWebWorker = function() {
+      function workerMain() {
+        importScripts(
+          'https://d3js.org/d3.v3.min.js',
+          'http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.min.js',
+          'http://localhost:8000/static/app1/Cobyla.js',
+          'http://localhost:8000/static/app1/CobylaLSFit.js'
+        );
+
+        var fitting = plotfit.fitting();
+
+        self.addEventListener('message', function(e) {
+          fitting.serialize(e.data).data(e.data.data).recalculate();
+        });
+
+        fitting.on('recalculate', function() {
+          self.postMessage(fitting.serialize());
+        });
+      };
+
+      var blob = new Blob([
+        'plotfit = { expression: ',
+        plotfit.expression.toString(),
+        ', fitting: ',
+        plotfit.fitting.toString(),
+        '};',
+        workerMain.toString(),
+        'workerMain()',
+      ]);
+
+      var blobUrl = window.URL.createObjectURL(blob);
+
+      worker = new Worker(blobUrl);
+
+      console.log(blobUrl);
+
+      worker.addEventListener('message', function(e) {
+        console.log("Got response from worker", e.data);
+        my.serialize(e.data);
+        dispatch.recalculate.call(null, my);
+      }, false);
+
+      console.log(worker);
+
       return my;
     };
 
@@ -922,7 +977,8 @@ plotfit = (function(my, d3) {
           yScale = plotfit.scale().expr('I'),
           yScaleVC = plotfit.scaleVC().scale(yScale),
           fitting = plotfit.fitting().expr('m*X+b')
-            .data(fullData.map(d => [xScale(d.Q, d.I), yScale(d.Q, d.I)])),
+            .data(fullData.map(d => [xScale(d.Q, d.I), yScale(d.Q, d.I)]))
+            .registerWebWorker(),
           fittingVC = plotfit.fittingVC().fitting(fitting),
           chart = plotfit.chart()
             .data(fullData)
