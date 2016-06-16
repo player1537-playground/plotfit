@@ -249,7 +249,7 @@ plotfit = (function(my, d3) {
               dispatch.textChanged.apply(this, arguments);
             });
           input.filter(function(d) {
-            return d3.select(this).property('value') !== d.textValue;
+            return this !== document.activeElement;
           }).property('value', d => d.textValue);
 
           var vars = self.selectAll('.variables').data(d => [d.inputs]);
@@ -282,10 +282,12 @@ plotfit = (function(my, d3) {
             .attr('name', d => d.name);
           inputs.exit().remove();
           inputs
-            .property('value', d => d.value)
             .on('input', function(d) {
               dispatch.inputChanged.apply(this, arguments);
             });
+          inputs.filter(function(d) {
+            return this !== document.activeElement;
+          }).property('value', d => d.value);
         };
 
         redraw();
@@ -343,7 +345,17 @@ plotfit = (function(my, d3) {
               scale.logOrLinear(old === 'log' ? 'linear' : 'log');
 
             }).on('inputChanged', function(d) {
-              var scope = scale.scope();
+              if (!isFinite(this.value)) {
+                return;
+              }
+
+              var scope = scale.scope(),
+                  value = +this.value;
+
+              if (value === scope[d.name]) {
+                return;
+              }
+
               scope[d.name] = +this.value;
               scale.scope(scope);
 
@@ -419,7 +431,7 @@ plotfit = (function(my, d3) {
       };
 
 
-      results = cobyla.nlFit(currentData, evaluate, startingValues, undefined, undefined, undefined, { maxFun: 10000 });
+      results = cobyla.nlFit(currentData, evaluate, startingValues, undefined, undefined, undefined, { maxFun: 10000, rhoStart: 1000 });
 
       newScope = {};
       d3.zip(paramNames, results.params).forEach(function(d) {
@@ -462,10 +474,13 @@ plotfit = (function(my, d3) {
 
     my.recalculate = function() {
       if (worker !== null) {
-        var serialized = my.serialize();
-        serialized.data = data;
-        console.log("Sending to worker", serialized);
-        worker.postMessage(serialized);
+        if (active) {
+          var serialized = my.serialize();
+          serialized.data = data;
+          console.log("Sending to worker", serialized);
+          my.active(false);
+          worker.postMessage(serialized);
+        }
       } else {
         refit();
         dispatch.recalculate.call(null, my);
@@ -532,8 +547,8 @@ plotfit = (function(my, d3) {
 
       expression.serialize(_.expression);
       my
-        .active(_.active)
-        .domain(_.domain);
+        .domain(_.domain)
+        .active(_.active);
 
       return my;
     };
@@ -592,11 +607,19 @@ plotfit = (function(my, d3) {
                 .recalculate();
 
             }).on('inputChanged.fittingVC', function(d) {
-              var scope = fitting.scope();
-              scope[d.name] = +this.value;
-              fitting
-                .scope(scope)
-                .recalculate();
+              if (!isFinite(this.value)) {
+                return;
+              }
+
+              var scope = fitting.scope(),
+                  value = +this.value;
+
+              if (value === scope[d.name]) {
+                return;
+              }
+
+              scope[d.name] = value;
+              fitting.scope(scope);
 
             }).on('textChanged.fittingVC', function(d) {
               fitting
@@ -776,7 +799,7 @@ plotfit = (function(my, Plotly, d3) {
       var domain = fitting.domain();
       xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
       yFit = xFit.map(fitting);
-      function onRecalculateAndActive() {
+      function redraw() {
         console.log('fitting.on recalculate.chart active.chart', fitting.serialize());
         var domain = fitting.domain();
         xFit = xScaled.filter((d, i) => domain[0] <= i && i < domain[1]);
@@ -787,8 +810,9 @@ plotfit = (function(my, Plotly, d3) {
         Plotly.redraw(node);
       }
       fitting
-        .on('recalculate.chart', onRecalculateAndActive)
-        .on('active.chart', onRecalculateAndActive)
+        .on('recalculate.chart', redraw)
+        .on('active.chart', redraw)
+        .on('scope.chart', redraw)
         .on('domain.chart', function() {
           console.log('fitting.on domain.chart', fitting.serialize());
           var domain = fitting.domain();
@@ -1089,6 +1113,10 @@ plotfit = (function(my, d3) {
         fitting
           .domain([ev.value[0], ev.value[1]])
           .recalculate();
+      });
+
+      fitting.on('domain.main', function() {
+        $("#plot_range").bootstrapSlider('setValue', fitting.domain());
       });
 
       configuration('Reset');
