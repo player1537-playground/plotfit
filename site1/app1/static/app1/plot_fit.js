@@ -1138,8 +1138,9 @@ plotfit = (function(my, d3) {
         var csvs = [fullData],
             plots = d3.selectAll(".bar").datum(d => csvs[0]),
             bbox = plots.node().getBoundingClientRect(),
-            width = bbox.width - 2 * 10,
-            height = bbox.height - 2 * 8,
+            width = bbox.width,
+            height = bbox.height,
+            border = { x: 10, y: 8 },
             x = (d => d.Q),
             y = (d => d.I),
             xScale = d3.scale.linear().range([0, width]).domain([
@@ -1167,11 +1168,11 @@ plotfit = (function(my, d3) {
         paths
           .attr("d", function(d) {
             var xScale = d3.scale.linear()
-                  .range([0, width])
+                  .range([border.x, width-border.x])
                   .domain(d3.extent(d, x));
 
             var yScale = d3.scale.linear()
-                  .range([height, 0])
+                  .range([height-border.y, border.y])
                   .domain(d3.extent(d, y));
 
             var line = d3.svg.line()
