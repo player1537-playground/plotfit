@@ -119,12 +119,17 @@
           margin-right: 0;
       }
   }
+
+  #wrapper.testing {
+      display: none;
+  }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.5.3/mocha.min.css">
 {% endblock %}
 
 {% block content %}
 
-  <div id="wrapper">
+  <div id="wrapper" class="toggled-right {% if testing %}testing{% endif %}">
     <div id="sidebar-left-wrapper">
       <div class="container-fluid">
 
@@ -271,6 +276,8 @@
 
   </div>
 
+  <div id="mocha"></div>
+
 {% endblock %}
 
 {% block localjs %}
@@ -283,4 +290,23 @@
 <script type="text/javascript" src="{% static 'app1/Cobyla.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/CobylaLSFit.js' %}"></script>
 <script type="text/javascript" src="{% static 'app1/plot_fit.js' %}"></script>
+
+{% if testing %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mocha/2.5.3/mocha.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/chai/3.5.0/chai.min.js"></script>
+<script type="text/javascript">
+
+  mocha.ui('bdd');
+  mocha.reporter('html');
+  var expect = chai.expect;
+  </script>
+
+<script type="text/javascript" src="{% static 'app1/spec.js' %}"></script>
+<script type="text/javascript">
+
+  mocha.run();
+</script>
+
+{% endif %}
+
 {% endblock %}
