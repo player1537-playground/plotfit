@@ -3,6 +3,6 @@ venv
 db.sqlite3
 iq-data
 *.pyc
-assets
+assets/bundles
 node_modules
 webpack-stats.json
