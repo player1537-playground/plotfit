@@ -1,3 +1,0 @@
-Django>=1.9.6
-plotly>=1.9.12
-numpy>=1.11
