@@ -6,10 +6,19 @@ ifndef PYTHON
 PYTHON := $(firstword $(shell which python2 python2.7 python))
 endif
 
+ifndef NPM
+NPM := $(firstword $(shell which npm))
+endif
+
+ifndef WEBPACK
+WEBPACK := $(firstword node_modules/.bin/webpack)
+endif
+
 export DJANGO_COLORS := nocolor
 
 .PHONY: runserver
 runserver:
+	$(WEBPACK) --config webpack.config.js --watch & \
 	$(PYTHON) manage.py runserver
 
 .PHONY: collectstatic
