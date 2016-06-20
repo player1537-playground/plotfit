@@ -55,14 +55,18 @@
 <template>
   <div id="sidebar-left-wrapper">
     <h3>Left Sidebar</h3>
+    <x-scale></x-scale>
   </div>
 </template>
 
 <script>
 
-  import { getCount } from '../vuex/getters';
+  import xScale from './x-scale.vue';
 
   export default {
+      components: {
+          xScale,
+      },
   }
 
 </script>

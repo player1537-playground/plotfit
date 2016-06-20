@@ -1,3 +1,3 @@
-export const incrementCounter = function({ dispatch, state }) {
-  dispatch('INCREMENT', 1);
+export const xScaleSetExpr = function({ dispatch }, newExpr) {
+  dispatch('XSCALE_SET_EXPR', newExpr);
 };

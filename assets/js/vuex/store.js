@@ -4,12 +4,14 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 const state = {
-  count: 0,
+  xScale: {
+    expr: 'Q',
+  },
 };
 
 const mutations = {
-  INCREMENT(state, amount) {
-    state.count += amount;
+  XSCALE_SET_EXPR({ xScale }, newExpr) {
+    xScale.expr = newExpr;
   }
 };
 

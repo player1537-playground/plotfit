@@ -1,3 +1,3 @@
-export function getCount(state) {
-  return state.count;
+export function xScaleExpr(state) {
+  return state.xScale.expr;
 }
