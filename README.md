@@ -13,7 +13,7 @@ To setup Python we create a virtual environment and then run a `make` command to
 install everything.
 
 ```bash
-python -m pip virtualenv venv
+python -m virtualenv venv
 source venv/bin/activate
 make depend-python
 ```
@@ -41,6 +41,8 @@ kill the server, just Control-C it.
 ```bash
 make
 ```
+
+The server will be running at: http://localhost:8000/
 
 # Notes
 
