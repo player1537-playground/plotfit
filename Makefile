@@ -37,9 +37,13 @@ createsuperuser:
 migrate:
 	$(PYTHON) manage.py migrate
 
-.PHONY: depend
-depend:
+.PHONY: depend-python
+depend-python:
 	$(PYTHON) -m pip install -r requirements.txt
+
+.PHONY: depend-javascript
+depend-javascript:
+	$(NPM) --no-colors install
 
 .PHONY: clean
 clean:
