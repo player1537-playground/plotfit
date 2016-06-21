@@ -1,11 +1,11 @@
 import Vue from 'vue';
-import plotfitApp from './components/plotfit-app.vue';
+import PlotfitApp from './components/PlotfitApp.vue';
 
 Vue.config.devtools = true;
 
 new Vue({
   el: "body",
   components: {
-    plotfitApp,
+    PlotfitApp,
   },
 });

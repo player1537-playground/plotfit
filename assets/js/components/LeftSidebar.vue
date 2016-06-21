@@ -61,11 +61,11 @@
 
 <script>
 
-  import xScale from './x-scale.vue';
+  import XScale from './XScale.vue';
 
   export default {
       components: {
-          xScale,
+          XScale,
       },
   }
 

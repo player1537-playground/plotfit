@@ -20,7 +20,7 @@
 
 <script>
 
-  import sidebarInput from './sidebar-input.vue';
+  import SidebarInput from './SidebarInput.vue';
 
   import { xScaleExpr, xScaleLogOrLinear } from '../vuex/getters';
   import { xScaleSetExpr, xScaleSetLogOrLinear } from '../vuex/actions';
@@ -67,7 +67,7 @@
           },
       },
       components: {
-          sidebarInput,
+          SidebarInput,
       },
   }
 

@@ -12,17 +12,17 @@
 
 <script>
 
-  import leftSidebar from './left-sidebar.vue';
-  import mainPlot from './main-plot.vue';
-  import rightSidebar from './right-sidebar.vue';
+  import LeftSidebar from './LeftSidebar.vue';
+  import MainPlot from './MainPlot.vue';
+  import RightSidebar from './RightSidebar.vue';
   import store from '../vuex/store';
 
   export default {
       store: store,
       components: {
-          leftSidebar,
-          mainPlot,
-          rightSidebar,
+          LeftSidebar,
+          MainPlot,
+          RightSidebar,
       }
   }
 

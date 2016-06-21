@@ -22,8 +22,6 @@
 
 <script>
 
-  import { getCount } from '../vuex/getters';
-
   export default {
   }
 
