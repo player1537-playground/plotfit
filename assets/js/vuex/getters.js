@@ -5,3 +5,7 @@ export function getXScaleExpr({ xScale }) {
 export function getXScaleIsLog({ xScale }) {
   return xScale.isLog;
 }
+
+export function getXScaleScope({ xScale }) {
+  return xScale.scope;
+}

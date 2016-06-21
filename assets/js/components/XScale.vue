@@ -15,6 +15,8 @@
        >
     </sidebar-input>
 
+    <p>{{ xScale ? xScale(2, 3) : "Syntax Error" }}</p>
+
   </div>
 </template>
 
@@ -22,8 +24,14 @@
 
   import SidebarInput from './SidebarInput.vue';
 
-  import { getXScaleExpr, getXScaleIsLog } from '../vuex/getters';
-  import { setXScaleExpr, setXScaleIsLog } from '../vuex/actions';
+  import { getXScaleExpr,
+           getXScaleIsLog,
+           getXScaleScope } from '../vuex/getters';
+  import { setXScaleExpr,
+           setXScaleIsLog,
+           setXScaleScope } from '../vuex/actions';
+
+  import expression from '../expression.js';
 
   export default {
       data: function() {
@@ -34,10 +42,23 @@
           getters: {
               expr: getXScaleExpr,
               isLog: getXScaleIsLog,
+              scope: getXScaleScope,
           },
           actions: {
               setExpr: setXScaleExpr,
               setIsLog: setXScaleIsLog,
+              setScope: setXScaleScope,
+          },
+      },
+      computed: {
+          xScale() {
+              try {
+                  return expression(['Q', 'I'])
+                      .scope(this.scope)
+                      .expr(this.expr);
+              } catch (SyntaxError) {
+                  return null;
+              }
           },
       },
       components: {
