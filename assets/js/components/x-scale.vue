@@ -11,7 +11,7 @@
       </button>
       <ul class="dropdown-menu">
         <li v-for="option in standardValues">
-          <a value="option" @click="select(option)">{{ option }}</a>
+          <a href="#!" value="option" @click="updateExpr(option)">{{ option }}</a>
         <li>
       </ul>
       <button type="button" class="btn btn-default"
@@ -38,6 +38,7 @@
                   'Q^2',
               ],
               buttonLabel: 'log',
+              dropdownLabel: 'X = ',
           };
       },
       vuex: {
