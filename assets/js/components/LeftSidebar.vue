@@ -54,8 +54,16 @@
 
 <template>
   <div id="sidebar-left-wrapper">
-    <h3>Left Sidebar</h3>
-    <x-scale></x-scale>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="btn-group-vertical">
+            <h3>Left Sidebar</h3>
+            <x-scale></x-scale>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
