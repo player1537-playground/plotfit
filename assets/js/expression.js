@@ -1,6 +1,6 @@
 import math from 'mathjs';
 
-export default function expression(parameters) {
+export default function(parameters) {
   var scope = [],
       variables = [],
       expr = null,

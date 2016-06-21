@@ -31,7 +31,7 @@
            setXScaleIsLog,
            setXScaleScope } from '../vuex/actions';
 
-  import expression from '../expression.js';
+  import scale from '../expression.js';
 
   export default {
       data: function() {
@@ -53,7 +53,8 @@
       computed: {
           xScale() {
               try {
-                  return expression(['Q', 'I'])
+                  return scale(['Q', 'I'])
+                      .isLog(this.isLog)
                       .scope(this.scope)
                       .expr(this.expr);
               } catch (SyntaxError) {
