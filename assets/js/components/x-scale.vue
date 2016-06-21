@@ -15,7 +15,8 @@
         <li>
       </ul>
       <button type="button" class="btn btn-default"
-              :class="{ 'active': buttonActive }" @click.prevent="buttonPressed">
+              :class="{ 'active': buttonActive }"
+              @click.prevent="buttonPressed">
         {{ buttonLabel }}
       </button>
     </div>
@@ -26,8 +27,8 @@
 
 <script>
 
-  import { xScaleExpr } from '../vuex/getters';
-  import { xScaleSetExpr } from '../vuex/actions';
+  import { xScaleExpr, xScaleLogOrLinear } from '../vuex/getters';
+  import { xScaleSetExpr, xScaleSetLogOrLinear } from '../vuex/actions';
 
   export default {
       data: function() {
@@ -44,9 +45,11 @@
       vuex: {
           getters: {
               expr: xScaleExpr,
+              logOrLinear: xScaleLogOrLinear,
           },
           actions: {
               updateExpr: xScaleSetExpr,
+              updateLogOrLinear: xScaleSetLogOrLinear,
           },
       },
       computed: {
@@ -57,6 +60,19 @@
               set(val) {
                   this.updateExpr(val);
               },
+          },
+          buttonActive: {
+              get() {
+                  return this.logOrLinear === 'log';
+              },
+              set(val) {
+                  this.updateLogOrLinear(val ? 'log' : 'linear');
+              },
+          },
+      },
+      methods: {
+          buttonPressed() {
+              this.buttonActive = !this.buttonActive;
           },
       },
   }
