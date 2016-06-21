@@ -1,7 +1,7 @@
-export function xScaleExpr({ xScale }) {
+export function getXScaleExpr({ xScale }) {
   return xScale.expr;
 }
 
-export function xScaleIsLog({ xScale }) {
+export function getXScaleIsLog({ xScale }) {
   return xScale.isLog;
 }

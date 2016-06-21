@@ -9,9 +9,9 @@
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
        button-label="log"
        :input-text="expr"
-       :update-input-text="updateExpr"
+       :update-input-text="setExpr"
        :button-state="isLog"
-       :update-button-state="updateIsLog"
+       :update-button-state="setIsLog"
        >
     </sidebar-input>
 
@@ -22,8 +22,8 @@
 
   import SidebarInput from './SidebarInput.vue';
 
-  import { xScaleExpr, xScaleIsLog } from '../vuex/getters';
-  import { xScaleSetExpr, xScaleSetIsLog } from '../vuex/actions';
+  import { getXScaleExpr, getXScaleIsLog } from '../vuex/getters';
+  import { setXScaleExpr, setXScaleIsLog } from '../vuex/actions';
 
   export default {
       data: function() {
@@ -32,12 +32,12 @@
       },
       vuex: {
           getters: {
-              expr: xScaleExpr,
-              isLog: xScaleIsLog,
+              expr: getXScaleExpr,
+              isLog: getXScaleIsLog,
           },
           actions: {
-              updateExpr: xScaleSetExpr,
-              updateIsLog: xScaleSetIsLog,
+              setExpr: setXScaleExpr,
+              setIsLog: setXScaleIsLog,
           },
       },
       components: {
