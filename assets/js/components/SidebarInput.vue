@@ -31,9 +31,7 @@
           dropdownOptions: Array,
           buttonLabel: String,
           inputText: String,
-          updateInputText: Function,
           buttonState: Boolean,
-          updateButtonState: Function,
       },
       data: function() {
           return {
@@ -42,11 +40,11 @@
       computed: {
           inputTextInternal: {
               get() { return this.inputText; },
-              set(val) { this.updateInputText(val); },
+              set(val) { this.$dispatch('input-text', val); },
           },
           buttonStateInternal: {
               get() { return this.buttonState; },
-              set(val) { this.updateButtonState(val); },
+              set(val) { this.$dispatch('button-state', val); },
           },
       },
   }

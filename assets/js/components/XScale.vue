@@ -9,9 +9,9 @@
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
        button-label="log"
        :input-text="expr"
-       :update-input-text="setExpr"
+       @input-text="setExpr"
        :button-state="isLog"
-       :update-button-state="setIsLog"
+       @button-state="setIsLog"
        >
     </sidebar-input>
 
