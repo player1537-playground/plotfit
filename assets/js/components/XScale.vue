@@ -4,25 +4,24 @@
 
 <template>
   <div>
-    <sidebar-input
+    <base-scale
        dropdown-label="X = "
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
-       button-label="log"
-       :input-text="expr"
-       @input-text="setExpr"
-       :button-state="isLog"
-       @button-state="setIsLog"
+       :expr="expr"
+       @expr="setExpr"
+       :is-log="isLog"
+       @is-log="setIsLog"
+       :scope="scope"
+       @scope="setScope"
        >
-    </sidebar-input>
-
-    <p>{{ xScale ? xScale(2, 3) : "Syntax Error" }}</p>
+    </base-scale>
 
   </div>
 </template>
 
 <script>
 
-  import SidebarInput from './SidebarInput.vue';
+  import BaseScale from './BaseScale.vue';
 
   import { getXScaleExpr,
            getXScaleIsLog,
@@ -63,7 +62,7 @@
           },
       },
       components: {
-          SidebarInput,
+          BaseScale,
       },
   }
 
