@@ -6,7 +6,7 @@ Vue.use(Vuex);
 const state = {
   xScale: {
     expr: 'Q',
-    logOrLinear: 'linear',
+    isLog: false,
   },
 };
 
@@ -14,8 +14,8 @@ const mutations = {
   XSCALE_SET_EXPR({ xScale }, newExpr) {
     xScale.expr = newExpr;
   },
-  XSCALE_SET_LOG_OR_LINEAR({ xScale }, newValue) {
-    xScale.logOrLinear = newValue;
+  XSCALE_SET_IS_LOG({ xScale }, newValue) {
+    xScale.isLog = newValue;
   },
 };
 

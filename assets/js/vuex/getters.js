@@ -2,6 +2,6 @@ export function xScaleExpr({ xScale }) {
   return xScale.expr;
 }
 
-export function xScaleLogOrLinear({ xScale }) {
-  return xScale.logOrLinear;
+export function xScaleIsLog({ xScale }) {
+  return xScale.isLog;
 }

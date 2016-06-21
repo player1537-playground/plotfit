@@ -8,10 +8,10 @@
        dropdown-label="X = "
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
        button-label="log"
-       :input-text="inputText"
-       @input-text="updateInputText"
-       :button-state="buttonActive"
-       @button-state="updateButtonState"
+       :input-text="expr"
+       :update-input-text="updateExpr"
+       :button-state="isLog"
+       :update-button-state="updateIsLog"
        >
     </sidebar-input>
 
@@ -22,8 +22,8 @@
 
   import SidebarInput from './SidebarInput.vue';
 
-  import { xScaleExpr, xScaleLogOrLinear } from '../vuex/getters';
-  import { xScaleSetExpr, xScaleSetLogOrLinear } from '../vuex/actions';
+  import { xScaleExpr, xScaleIsLog } from '../vuex/getters';
+  import { xScaleSetExpr, xScaleSetIsLog } from '../vuex/actions';
 
   export default {
       data: function() {
@@ -33,37 +33,11 @@
       vuex: {
           getters: {
               expr: xScaleExpr,
-              logOrLinear: xScaleLogOrLinear,
+              isLog: xScaleIsLog,
           },
           actions: {
               updateExpr: xScaleSetExpr,
-              updateLogOrLinear: xScaleSetLogOrLinear,
-          },
-      },
-      computed: {
-          inputText: {
-              get() {
-                  return this.expr;
-              },
-              set(val) {
-                  this.updateExpr(val);
-              },
-          },
-          buttonActive: {
-              get() {
-                  return this.logOrLinear === 'log';
-              },
-              set(val) {
-                  this.updateLogOrLinear(val ? 'log' : 'linear');
-              },
-          },
-      },
-      methods: {
-          updateInputText(val) {
-              this.inputText = val;
-          },
-          updateButtonState(val) {
-              this.buttonActive = val;
+              updateIsLog: xScaleSetIsLog,
           },
       },
       components: {
