@@ -9,3 +9,15 @@ export const setXScaleIsLog = function({ dispatch }, _) {
 export const setXScaleScope = function({ dispatch }, _) {
   dispatch('XSCALE_SET_SCOPE', _);
 };
+
+export const setYScaleExpr = function({ dispatch }, _) {
+  dispatch('YSCALE_SET_EXPR', _);
+};
+
+export const setYScaleIsLog = function({ dispatch }, _) {
+  dispatch('YSCALE_SET_IS_LOG', _);
+};
+
+export const setYScaleScope = function({ dispatch }, _) {
+  dispatch('YSCALE_SET_SCOPE', _);
+};

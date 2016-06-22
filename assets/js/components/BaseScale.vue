@@ -21,13 +21,6 @@
 
   import SidebarInput from './SidebarInput.vue';
 
-  import { getXScaleExpr,
-           getXScaleIsLog,
-           getXScaleScope } from '../vuex/getters';
-  import { setXScaleExpr,
-           setXScaleIsLog,
-           setXScaleScope } from '../vuex/actions';
-
   import scale from '../scale.js';
 
   export default {

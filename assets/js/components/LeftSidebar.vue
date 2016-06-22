@@ -60,6 +60,7 @@
           <div class="btn-group-vertical">
             <h3>Left Sidebar</h3>
             <x-scale></x-scale>
+            <y-scale></y-scale>
           </div>
         </div>
       </div>
@@ -70,10 +71,12 @@
 <script>
 
   import XScale from './XScale.vue';
+  import YScale from './YScale.vue';
 
   export default {
       components: {
           XScale,
+          YScale,
       },
   }
 
