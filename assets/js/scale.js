@@ -15,7 +15,13 @@ export default function(parameters) {
     return my;
   };
 
-  my = rebind(my, expression, 'scope', 'expr');
+  my.toString = function() {
+    var x = "scale(" + this.isLog() + ", " + JSON.stringify(this.scope()) + ", " + this.expr() + ")";
+    console.log("result", x);
+    return x;
+  };
+
+  my = rebind(my, expr, 'scope', 'expr');
 
   return my;
 };
