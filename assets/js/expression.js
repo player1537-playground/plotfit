@@ -2,7 +2,6 @@ import math from 'mathjs';
 
 export default function(parameters) {
   var scope = [],
-      variables = [],
       expr = null,
       compiled = null;
 
@@ -29,21 +28,18 @@ export default function(parameters) {
   my.expr = function(_) {
     if (!arguments.length) return expr;
     expr = _;
+    compiled = math.compile(expr);
+    return my;
+  };
 
-    variables = math.parse(expr).filter(function(node) {
+  my.variables = function(expr) {
+    var variables = math.parse(expr).filter(function(node) {
       return node.isSymbolNode && !parameters.includes(node.name);
     }).map(function(node) {
       return node.name;
     });
 
-    compiled = math.compile(expr);
-    return my;
-  };
-
-  my.variables = function(_) {
-    if (!arguments.length) return variables;
-    variables = _;
-    return my;
+    return variables;
   };
 
   return my;

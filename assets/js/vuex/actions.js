@@ -1,3 +1,5 @@
+import { getXScale, getXScaleScope, getYScale, getYScaleScope } from './getters';
+
 export const setXScaleExpr = function({ dispatch }, _) {
   dispatch('XSCALE_SET_EXPR', _);
 };

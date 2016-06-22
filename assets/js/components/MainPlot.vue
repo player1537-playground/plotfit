@@ -12,6 +12,10 @@
     }
 }
 
+#main-plot {
+    height: 80vh;
+}
+
 </style>
 
 <template>

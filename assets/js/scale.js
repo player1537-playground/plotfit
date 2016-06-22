@@ -21,7 +21,7 @@ export default function(parameters) {
     return x;
   };
 
-  my = rebind(my, expr, 'scope', 'expr');
+  my = rebind(my, expr, 'scope', 'expr', 'variables');
 
   return my;
 };

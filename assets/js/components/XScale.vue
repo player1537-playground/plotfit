@@ -49,18 +49,6 @@
               setScope: setXScaleScope,
           },
       },
-      computed: {
-          xScale() {
-              try {
-                  return scale(['Q', 'I'])
-                      .isLog(this.isLog)
-                      .scope(this.scope)
-                      .expr(this.expr);
-              } catch (SyntaxError) {
-                  return null;
-              }
-          },
-      },
       components: {
           BaseScale,
       },
