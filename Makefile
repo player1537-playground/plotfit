@@ -16,10 +16,14 @@ endif
 
 export DJANGO_COLORS := nocolor
 
+ifndef DJANGO_PORT
+DJANGO_PORT := 8000
+endif
+
 .PHONY: runserver
 runserver:
 	$(WEBPACK) --config webpack.config.js --watch & \
-	$(PYTHON) manage.py runserver
+	$(PYTHON) manage.py runserver 0.0.0.0:$(DJANGO_PORT)
 
 .PHONY: collectstatic
 collectstatic:
