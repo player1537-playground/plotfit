@@ -1,4 +1,5 @@
 import scale from '../scale';
+import fitter from '../fitter';
 
 export function getXScaleExpr({ xScale }) {
   return xScale.expr;
@@ -27,6 +28,7 @@ export function getXScaleVariables(state) {
   return getXScale(state).variables();
 }
 
+
 export function getYScaleExpr({ yScale }) {
   return yScale.expr;
 }
@@ -54,9 +56,31 @@ export function getYScaleVariables(state) {
   return getYScale(state).variables();
 }
 
+
 export function getDevScale(scope) {
   return scale(['Q', 'I', 'dev']).expr('dev');
 }
+
+
+export function getFittingExpr({ fitting }) {
+  return fitting.expr;
+}
+
+export function getFittingScope({ fitting }) {
+  return fitting.scope;
+}
+
+export function getFittingIsFitting({ fitting }) {
+  return fitting.isFitting;
+}
+
+export function getFittingFunction(state) {
+  return fitter(['X'])
+    .isFitting(getFittingIsFitting(state))
+    .scope(getFittingScope(state))
+    .expr(getFittingExpr(state));
+}
+
 
 export function getData(scope) {
   return [

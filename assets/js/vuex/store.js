@@ -38,6 +38,11 @@ const state = {
     scope: [],
     isLog: false,
   },
+  fitting: {
+    expr: 'm*X+b',
+    scope: [],
+    isFitting: false,
+  },
   sidebar: {
     left: false,
     right: true,
@@ -65,6 +70,17 @@ const mutations = {
   },
   YSCALE_SET_SCOPE({ yScale }, _) {
     yScale.scope = _;
+  },
+
+  FITTING_SET_EXPR(state, _) {
+    state.fitting.expr = _;
+    state.fitting.scope = getNewScope(_, getFittingScale(state), getFittingScaleScope(state));
+  },
+  FITTING_SET_IS_FITTING({ fitting }, _) {
+    fitting.isLog = _;
+  },
+  FITTING_SET_SCOPE({ fitting }, _) {
+    fitting.scope = _;
   },
 
   SIDEBAR_SET_LEFT({ sidebar }, _) {
