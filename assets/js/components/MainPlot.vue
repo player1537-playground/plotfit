@@ -16,6 +16,20 @@
 
 <template>
   <div id="page-content-wrapper">
+    <a class="btn btn-default menu-toggle"
+       data-toggle="tooltip" data-placement="right"
+       title="Click to toggle the file list sidebar."
+       @click="setSidebarLeft(!sidebarLeft)">
+      <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
+    </a>
+
+    <a class="btn btn-default menu-toggle pull-right"
+       data-toggle="tooltip"
+       data-placement="left" title="Click to toggle the file list sidebar."
+       @click="setSidebarRight(!sidebarRight)">
+      <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
+    </a>
+
     <h3>Main Plot</h3>
     <div id="main-plot"></div>
   </div>
@@ -23,7 +37,10 @@
 
 <script>
 
-  import { getXScale, getYScale, getDevScale, getData } from '../vuex/getters';
+  import { getXScale, getYScale, getDevScale, getData,
+           getSidebarLeft, getSidebarRight, getXScaleIsLog,
+           getYScaleIsLog } from '../vuex/getters';
+  import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
 
   export default {
@@ -31,11 +48,16 @@
           getters: {
               xScale: getXScale,
               yScale: getYScale,
+              xIsLog: getXScaleIsLog,
+              yIsLog: getYScaleIsLog,
               devScale: getDevScale,
               data: getData,
+              sidebarLeft: getSidebarLeft,
+              sidebarRight: getSidebarRight,
           },
           actions: {
-
+              setSidebarLeft: setSidebarLeft,
+              setSidebarRight: setSidebarRight,
           },
       },
       computed: {
@@ -48,6 +70,12 @@
           },
           devData() {
               return this.data.map(d => this.devScale.apply(null, d));
+          },
+          xAxisType() {
+              return this.xIsLog ? 'log' : 'linear';
+          },
+          yAxisType() {
+              return this.yIsLog ? 'log' : 'linear';
           },
       },
       attached() {
@@ -73,12 +101,12 @@
           var layout = {
               xaxis: {
                   autorange: true,
-                  type: this.xScale.isLog() ? 'log' : 'linear',
+                  type: this.xAxisType,
                   title: 'X Label',
               },
               yaxis: {
                   autorange: true,
-                  type: this.yScale.isLog() ? 'log' : 'linear',
+                  type: this.yAxisType,
                   title: 'Y Label',
               },
               title: 'Title',
@@ -93,6 +121,37 @@
           };
 
           Plotly.newPlot(graphDiv, [data], layout, options);
+
+          this.$watch('sidebarLeft', function() {
+              Plotly.Plots.resize(graphDiv);
+          });
+
+          this.$watch('sidebarRight', function() {
+              Plotly.Plots.resize(graphDiv);
+          });
+
+          this.$watch('xData', function(_) {
+              graphDiv.data[0].x = _;
+              Plotly.redraw(graphDiv);
+          });
+
+          this.$watch('yData', function(_) {
+              graphDiv.data[0].y = _;
+              Plotly.redraw(graphDiv);
+          });
+
+          this.$watch('devData', function(_) {
+              graphDiv.data[0].error_y.array = _;
+              Plotly.redraw(graphDiv);
+          });
+
+          this.$watch('xAxisType', function(_) {
+              Plotly.relayout(graphDiv, { 'xaxis.type': _ });
+          });
+
+          this.$watch('yAxisType', function(_) {
+              Plotly.relayout(graphDiv, { 'yaxis.type': _ });
+          });
       },
   }
 

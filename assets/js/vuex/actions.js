@@ -21,3 +21,11 @@ export const setYScaleIsLog = function({ dispatch }, _) {
 export const setYScaleScope = function({ dispatch }, _) {
   dispatch('YSCALE_SET_SCOPE', _);
 };
+
+export const setSidebarLeft = function({ dispatch }, _) {
+  dispatch('SIDEBAR_SET_LEFT', _);
+};
+
+export const setSidebarRight = function({ dispatch }, _) {
+  dispatch('SIDEBAR_SET_RIGHT', _);
+};

@@ -14,6 +14,10 @@ const state = {
     scope: [],
     isLog: false,
   },
+  sidebar: {
+    left: false,
+    right: false,
+  },
 };
 
 const mutations = {
@@ -35,6 +39,13 @@ const mutations = {
   },
   YSCALE_SET_SCOPE({ yScale }, _) {
     yScale.scope = _;
+  },
+
+  SIDEBAR_SET_LEFT({ sidebar }, _) {
+    sidebar.left = _;
+  },
+  SIDEBAR_SET_RIGHT({ sidebar }, _) {
+    sidebar.right = _;
   },
 };
 

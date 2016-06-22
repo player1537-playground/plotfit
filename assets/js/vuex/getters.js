@@ -151,3 +151,11 @@ export function getData(scope) {
     [0.403831E+00,0.176590E-02,0.100878E-02],
   ];
 }
+
+export function getSidebarLeft({ sidebar }) {
+  return sidebar.left;
+}
+
+export function getSidebarRight({ sidebar }) {
+  return sidebar.right;
+}
