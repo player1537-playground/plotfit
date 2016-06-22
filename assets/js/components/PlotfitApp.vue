@@ -3,10 +3,10 @@
 </style>
 
 <template>
-  <div id="wrapper">
+  <div id="wrapper" class="toggled-right">
     <left-sidebar></left-sidebar>
-    <main-plot></main-plot>
     <right-sidebar></right-sidebar>
+    <main-plot></main-plot>
   </div>
 </template>
 

@@ -35,7 +35,7 @@
     }
 
     #wrapper.toggled-right {
-        padding-right: 0;
+        padding-right: 0px;
     }
 
     #sidebar-right-wrapper {
@@ -48,8 +48,17 @@
         border-left: none;
     }
 
+    #wrapper #page-content-wrapper {
+        padding-right: 270px;
+    }
     #wrapper.toggled-right #page-content-wrapper {
-        margin-right: 0;
+        padding-right: 270px;
+    }
+    #wrapper.toggled-left #page-content-wrapper {
+        padding-right: 520px;
+    }
+    #wrapper.toggled-left.toggled-right #page-content-wrapper {
+        padding-right: 20px;
     }
 }
 </style>
