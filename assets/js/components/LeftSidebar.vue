@@ -61,6 +61,9 @@
             <h3>Left Sidebar</h3>
             <x-scale></x-scale>
             <y-scale></y-scale>
+
+            <h3>Fitting Controls</h3>
+            <fitting-control></fitting-control>
           </div>
         </div>
       </div>
@@ -72,11 +75,13 @@
 
   import XScale from './XScale.vue';
   import YScale from './YScale.vue';
+  import FittingControl from './FittingControl.vue';
 
   export default {
       components: {
           XScale,
           YScale,
+          FittingControl,
       },
   }
 

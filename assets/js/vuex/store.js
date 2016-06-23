@@ -3,7 +3,9 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-import { getXScale, getXScaleScope, getYScale, getYScaleScope } from './getters';
+import { getXScale, getXScaleScope,
+         getYScale, getYScaleScope,
+         getFittingFunction, getFittingScope } from './getters';
 
 function getNewScope(expr, scale, scope) {
   var variables = scale.variables(expr),
@@ -74,7 +76,11 @@ const mutations = {
 
   FITTING_SET_EXPR(state, _) {
     state.fitting.expr = _;
-    state.fitting.scope = getNewScope(_, getFittingScale(state), getFittingScaleScope(state));
+    state.fitting.scope = getNewScope.apply(null, [
+      _,
+      getFittingFunction(state),
+      getFittingScope(state),
+    ]);
   },
   FITTING_SET_IS_FITTING({ fitting }, _) {
     fitting.isLog = _;

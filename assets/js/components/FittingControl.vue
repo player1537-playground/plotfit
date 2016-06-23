@@ -4,33 +4,40 @@
 
 <template>
   <div>
-    <base-scale
+    <sidebar-input
        dropdown-label="Fit"
-       :dropdown-options="['Q', 'log(Q)', 'Q^2']"
-       :expr="expr"
-       @expr="setExpr"
-       :is-log="isLog"
-       @is-log="setIsLog"
-       :scope="scope"
-       @scope="setScope"
-       >
-    </base-scale>
+       :dropdown-options="['m*X+b']"
+       :input-text="expr"
+       @input-text="setExpr"
+       :button-state="isFitting"
+       @button-state="setIsFitting"
+       ></sidebar-input>
 
+    <div class="form-horizontal" v-show="scope.length">
+      <parameter-control
+         v-for="variable in scope"
+         :key="variable.key"
+         :index="$index"
+         :value="variable.value"
+         @value="updateScope"
+         ></parameter-control>
+    </div>
   </div>
 </template>
 
 <script>
 
-  import BaseScale from './BaseScale.vue';
+  import SidebarInput from './SidebarInput.vue';
+  import ParameterControl from './ParameterControl.vue';
 
-  import { getXScaleExpr,
-           getXScaleIsLog,
-           getXScaleScope } from '../vuex/getters';
-  import { setXScaleExpr,
-           setXScaleIsLog,
-           setXScaleScope } from '../vuex/actions';
+  import { getFittingExpr,
+           getFittingScope,
+           getFittingIsFitting } from '../vuex/getters';
+  import { setFittingExpr,
+           setFittingIsFitting,
+           setFittingScope } from '../vuex/actions';
 
-  import scale from '../expression.js';
+  import fitter from '../fitter';
 
   export default {
       data: function() {
@@ -39,18 +46,25 @@
       },
       vuex: {
           getters: {
-              expr: getXScaleExpr,
-              isLog: getXScaleIsLog,
-              scope: getXScaleScope,
+              expr: getFittingExpr,
+              isFitting: getFittingIsFitting,
+              scope: getFittingScope,
           },
           actions: {
-              setExpr: setXScaleExpr,
-              setIsLog: setXScaleIsLog,
-              setScope: setXScaleScope,
+              setExpr: setFittingExpr,
+              setIsFitting: setFittingIsFitting,
+              setScope: setFittingScope,
+          },
+      },
+      methods: {
+          updateScope({ key, index, value }) {
+              this.scope.$set(index, { key, value });
+              this.setScope(this.scope);
           },
       },
       components: {
-          BaseScale,
+          SidebarInput,
+          ParameterControl,
       },
   }
 

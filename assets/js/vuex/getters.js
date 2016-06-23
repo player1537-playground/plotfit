@@ -78,11 +78,12 @@ export function getFittingFunction(state) {
   return fitter(['X'])
     .isFitting(getFittingIsFitting(state))
     .scope(getFittingScope(state))
-    .expr(getFittingExpr(state));
+    .expr(getFittingExpr(state))
+    .data(getData(state));
 }
 
 
-export function getData(scope) {
+export function getData(state) {
   return [
     [0.373273E-02,0.370704E+00,0.318383E+00],
     [0.391937E-02,0.129951E+00,0.288099E+00],
@@ -183,6 +184,10 @@ export function getData(scope) {
     [0.403831E+00,0.176590E-02,0.100878E-02],
   ];
 }
+
+export function getFittingData(state) {
+  return getData(state);
+};
 
 export function getSidebarLeft({ sidebar }) {
   return sidebar.left;

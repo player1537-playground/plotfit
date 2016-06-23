@@ -28,12 +28,18 @@ export const setFittingExpr = function({ dispatch }, _) {
   dispatch('FITTING_SET_EXPR', _);
 };
 
-export const setFittingIsLog = function({ dispatch }, _) {
-  dispatch('FITTING_SET_IS_LOG', _);
+export const setFittingIsFitting = function({ dispatch }, _) {
+  dispatch('FITTING_SET_IS_FITTING', _);
 };
 
 export const setFittingScope = function({ dispatch }, _) {
   dispatch('FITTING_SET_SCOPE', _);
+};
+
+export const fitFittingFunction = function({ dispatch, state }, _) {
+  getFittingFunction(state).recalculate(function(fitter) {
+    dispatch('FITTING_SET_SCOPE', fitter.scope());
+  });
 };
 
 
