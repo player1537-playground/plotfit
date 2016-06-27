@@ -12,18 +12,13 @@
        @input="sidebarInputUpdate"
        ></sidebar-input>
 
-    <!--
     <div class="form-horizontal" v-show="scope.length">
       <parameter-control
          v-for="variable in scope"
          track-by="$index"
-         :key="variable.key"
-         :index="$index"
-         :value="variable.value"
-         @value="updateScope"
+         :value="{ name: variable.key, index: $index, text: variable.value }"
+         @input="parameterControlUpdate"
          ></parameter-control>
-      </div>
-    -->
     </div>
   </div>
 </template>
@@ -40,24 +35,22 @@
           dropdownOptions: Array,
           value: Object,
       },
-      data() {
-          return {
-              expr: this.value.expr,
-              isLog: this.value.isLog,
-              scope: this.value.scope,
-          };
-      },
       methods: {
           sidebarInputUpdate(e) {
-              this.expr = e.target.value.text;
-              this.isLog = e.target.value.button;
-              this.emitInputEvent();
-          },
-          emitInputEvent() {
               this.emitEvent('input', {
-                  expr: this.expr,
-                  isLog: this.isLog,
-                  scope: this.scope,
+                  expr: e.target.value.text,
+                  isLog: e.target.value.button,
+                  scope: [],
+              });
+          },
+          parameterControlUpdate(e) {
+              this.emitEvent('input', {
+                  expr: this.value.expr,
+                  isLog: this.value.isLog,
+                  scope: [{
+                      key: e.target.value.name,
+                      value: +e.target.value.text,
+                  }],
               });
           },
           emitEvent(eventName, value) {

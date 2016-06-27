@@ -30,10 +30,10 @@ const state = {
 };
 
 const mutations = {
-  SET_XSCALE({ xScale }, e) {
-    xScale.expr = e.target.value.expr;
-    xScale.scope = e.target.value.scope;
-    xScale.isLog = e.target.value.isLog;
+  SET_XSCALE({ xScale }, { expr, scope, isLog }) {
+    xScale.expr = expr;
+    xScale.scope = scope;
+    xScale.isLog = isLog;
   },
 
   YSCALE_SET_EXPR(state, _) {

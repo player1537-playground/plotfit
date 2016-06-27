@@ -6,16 +6,17 @@
   <div class="form-group"
        style="margin-bottom:0px">
     <label class="col-xs-6 control-label text-right">
-      {{ key }}
+      {{ name }}
     </label>
     <div class="col-xs-6">
       <input type="text"
              class="form-control"
              placeholder="0"
-             :name="key"
-             v-model="valueInternal"
+             :name="name"
+             :value="text"
+             @input="update"
              number
-             debounce="500"></input>
+             ></input>
     </div>
   </div>
 </template>
@@ -24,24 +25,29 @@
 
   export default {
       props: {
-          key: String,
-          value: Number,
-          index: Number,
+          value: Object,
       },
       data() {
           return {
+              index: this.value.index,
+              name: this.value.name,
+              text: this.value.text,
           };
       },
-      computed: {
-          valueInternal: {
-              get() { return this.value; },
-              set(_) {
-                  this.$dispatch('value', {
-                      key: this.key,
-                      index: this.index,
-                      value: _,
-                  });
-              },
+      methods: {
+          update(e) {
+              this.text = e.target.value;
+              this.emitInputEvent();
+          },
+          emitInputEvent() {
+              this.emitEvent('input', {
+                  index: this.index,
+                  name: this.name,
+                  text: this.text,
+              });
+          },
+          emitEvent(eventName, value) {
+              this.$emit(eventName, { target: { value } });
           },
       },
   }
