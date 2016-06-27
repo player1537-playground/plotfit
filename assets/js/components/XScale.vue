@@ -5,14 +5,10 @@
 <template>
   <div>
     <base-scale
-       dropdown-label="X = "
+       :dropdown-label="'X = '"
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
-       :expr="expr"
-       @expr="setExpr"
-       :is-log="isLog"
-       @is-log="setIsLog"
-       :scope="scope"
-       @scope="setScope"
+       :value="{ expr: xScale.expr, isLog: xScale.isLog, scope: xScale.scope }"
+       @input="updateXScale"
        >
     </base-scale>
 
@@ -23,30 +19,22 @@
 
   import BaseScale from './BaseScale.vue';
 
-  import { getXScaleExpr,
-           getXScaleIsLog,
-           getXScaleScope } from '../vuex/getters';
-  import { setXScaleExpr,
-           setXScaleIsLog,
-           setXScaleScope } from '../vuex/actions';
-
-  import scale from '../expression.js';
+  import { getXScale } from '../vuex/getters';
+  import { setXScale } from '../vuex/actions';
 
   export default {
-      data: function() {
-          return {
-          };
-      },
+      name: 'XScale',
       vuex: {
           getters: {
-              expr: getXScaleExpr,
-              isLog: getXScaleIsLog,
-              scope: getXScaleScope,
+              xScale: getXScale,
           },
           actions: {
-              setExpr: setXScaleExpr,
-              setIsLog: setXScaleIsLog,
-              setScope: setXScaleScope,
+              setXScale,
+          },
+      },
+      methods: {
+          updateXScale(e) {
+              this.setXScale(e);
           },
       },
       components: {

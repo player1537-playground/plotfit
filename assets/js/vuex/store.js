@@ -7,28 +7,6 @@ import { getXScale, getXScaleScope,
          getYScale, getYScaleScope,
          getFittingFunction, getFittingScope } from './getters';
 
-function getNewScope(expr, scale, scope) {
-  var variables = scale.variables(expr),
-      newScopeMap = {},
-      newScope = [];
-
-  for (var i=0; i<variables.length; ++i) {
-    newScopeMap[variables[i]] = 0.0;
-  }
-
-  for (i=0; i<scope.length; ++i) {
-    if (variables.includes(scope[i].key)) {
-      newScopeMap[scope[i].key] = scope[i].value;
-    }
-  }
-
-  for (var key in newScopeMap) {
-    newScope.push({ key, value: newScopeMap[key] });
-  }
-
-  return newScope;
-}
-
 const state = {
   xScale: {
     expr: 'Q',
@@ -52,15 +30,10 @@ const state = {
 };
 
 const mutations = {
-  XSCALE_SET_EXPR(state, _) {
-    state.xScale.expr = _;
-    state.xScale.scope = getNewScope(_, getXScale(state), getXScaleScope(state));
-  },
-  XSCALE_SET_IS_LOG({ xScale }, _) {
-    xScale.isLog = _;
-  },
-  XSCALE_SET_SCOPE({ xScale }, _) {
-    xScale.scope = _;
+  SET_XSCALE({ xScale }, e) {
+    xScale.expr = e.target.value.expr;
+    xScale.scope = e.target.value.scope;
+    xScale.isLog = e.target.value.isLog;
   },
 
   YSCALE_SET_EXPR(state, _) {

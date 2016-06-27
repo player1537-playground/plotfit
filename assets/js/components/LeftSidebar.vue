@@ -60,10 +60,10 @@
           <div class="btn-group-vertical">
             <h3>Left Sidebar</h3>
             <x-scale></x-scale>
-            <y-scale></y-scale>
+            <!-- <y-scale></y-scale> -->
 
             <h3>Fitting Controls</h3>
-            <fitting-control></fitting-control>
+            <!-- <fitting-control></fitting-control> -->
           </div>
         </div>
       </div>

@@ -1,13 +1,31 @@
-export const setXScaleExpr = function({ dispatch }, _) {
-  dispatch('XSCALE_SET_EXPR', _);
-};
+import { getXScaleAsScale } from './getters';
 
-export const setXScaleIsLog = function({ dispatch }, _) {
-  dispatch('XSCALE_SET_IS_LOG', _);
-};
+export const setXScale = function({ dispatch }, e) {
+  var expr = e.target.value.expr,
+      scope = e.target.value.scope,
+      isLog = e.target.value.isLog,
+      scale = getXScaleAsScale({ xScale: { expr, scope, isLog } }),
+      variables = scale.variables(expr),
+      newScopeMap = {},
+      newScope = [];
 
-export const setXScaleScope = function({ dispatch }, _) {
-  dispatch('XSCALE_SET_SCOPE', _);
+  for (var i=0; i<variables.length; ++i) {
+    newScopeMap[variables[i]] = 0.0;
+  }
+
+  for (i=0; i<scope.length; ++i) {
+    if (variables.includes(scope[i].key)) {
+      newScopeMap[scope[i].key] = scope[i].value;
+    }
+  }
+
+  for (var key in newScopeMap) {
+    newScope.push({ key, value: newScopeMap[key] });
+  }
+
+  dispatch('SET_XSCALE', {
+    target: { value: { expr, isLog, scope: newScope } },
+  });
 };
 
 

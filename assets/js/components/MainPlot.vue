@@ -41,7 +41,7 @@
 
 <script>
 
-  import { getXScale, getYScale, getDevScale, getData,
+  import { getXScaleAsScale, getYScale, getDevScale, getData,
            getSidebarLeft, getSidebarRight, getXScaleIsLog,
            getYScaleIsLog } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
@@ -50,7 +50,7 @@
   export default {
       vuex: {
           getters: {
-              xScale: getXScale,
+              xScale: getXScaleAsScale,
               yScale: getYScale,
               xIsLog: getXScaleIsLog,
               yIsLog: getYScaleIsLog,

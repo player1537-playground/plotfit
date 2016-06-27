@@ -1,27 +1,15 @@
 import scale from '../scale';
 import fitter from '../fitter';
 
-export function getXScaleExpr({ xScale }) {
-  return xScale.expr;
+export function getXScale({ xScale }) {
+  return xScale;
 }
 
-export function getXScaleIsLog({ xScale }) {
-  return xScale.isLog;
-}
-
-export function getXScaleScope({ xScale }) {
-  return xScale.scope;
-}
-
-export function getXScale(state) {
-  try {
-    return scale(['Q', 'I', 'dev'])
-      .isLog(getXScaleIsLog(state))
-      .scope(getXScaleScope(state))
-      .expr(getXScaleExpr(state));
-  } catch (SyntaxError) {
-    return null;
-  }
+export function getXScaleAsScale({ xScale }) {
+  return scale(['Q', 'I', 'dev'])
+    .isLog(xScale.isLog)
+    .scope(xScale.scope)
+    .expr(xScale.expr);
 }
 
 export function getXScaleVariables(state) {
