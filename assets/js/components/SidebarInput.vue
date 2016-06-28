@@ -11,16 +11,16 @@
       </button>
       <ul class="dropdown-menu">
         <li v-for="option in dropdownOptions">
-          <a href="#!" value="option" @click="updateText">{{ option }}</a>
+          <a href="#!" value="option" @click.stop.prevent="updateText">{{ option }}</a>
         <li>
       </ul>
       <label class="btn btn-default">
-        <input type="checkbox" @click="updateButton" :value="button">
+        <input type="checkbox" @click.stop.prevent="updateButton" :value="button">
         <span>{{ buttonLabel }}<span>
       </label>
     </div>
     <input type="text" class="form-control pull-left" :value="text"
-           @input="updateText" />
+           @input.stop.prevent="updateText" />
   </div>
 </template>
 

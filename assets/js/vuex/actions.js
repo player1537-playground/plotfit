@@ -1,10 +1,11 @@
 import { getXScaleAsScale } from './getters';
 
-export const setXScale = function({ dispatch, store }, e) {
+export const setXScale = function({ dispatch, state }, e) {
   var expr = e.target.value.expr,
       scopeToAdd = e.target.value.scope,
       isLog = e.target.value.isLog,
-      scale = getXScaleAsScale(store),
+      scale = getXScaleAsScale(state),
+      scope = scale.scope(),
       variables = scale.variables(expr),
       newScopeMap = {},
       newScope = [];
