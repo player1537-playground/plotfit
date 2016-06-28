@@ -5,14 +5,10 @@
 <template>
   <div>
     <base-scale
-       dropdown-label="Y = "
-       :dropdown-options="['Q', 'log(Q)', 'Q^2']"
-       :expr="expr"
-       @expr="setExpr"
-       :is-log="isLog"
-       @is-log="setIsLog"
-       :scope="scope"
-       @scope="setScope"
+       :dropdown-label="'Y = '"
+       :dropdown-options="['I', 'log(I)', 'I^2']"
+       :value="{ expr: yScale.expr, isLog: yScale.isLog, scope: yScale.scope }"
+       @input="updateYScale"
        >
     </base-scale>
 
@@ -23,42 +19,22 @@
 
   import BaseScale from './BaseScale.vue';
 
-  import { getYScaleExpr,
-           getYScaleIsLog,
-           getYScaleScope } from '../vuex/getters';
-  import { setYScaleExpr,
-           setYScaleIsLog,
-           setYScaleScope } from '../vuex/actions';
-
-  import scale from '../expression.js';
+  import { getYScale } from '../vuex/getters';
+  import { setYScale } from '../vuex/actions';
 
   export default {
-      data: function() {
-          return {
-          };
-      },
+      name: 'XScale',
       vuex: {
           getters: {
-              expr: getYScaleExpr,
-              isLog: getYScaleIsLog,
-              scope: getYScaleScope,
+              yScale: getYScale,
           },
           actions: {
-              setExpr: setYScaleExpr,
-              setIsLog: setYScaleIsLog,
-              setScope: setYScaleScope,
+              setYScale,
           },
       },
-      computed: {
-          yScale() {
-              try {
-                  return scale(['Q', 'I'])
-                      .isLog(this.isLog)
-                      .scope(this.scope)
-                      .expr(this.expr);
-              } catch (SyntaxError) {
-                  return null;
-              }
+      methods: {
+          updateYScale(e) {
+              this.setYScale(e);
           },
       },
       components: {

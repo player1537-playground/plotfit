@@ -6,16 +6,15 @@
   <div class="form-group"
        style="margin-bottom:0px">
     <label class="col-xs-6 control-label text-right">
-      {{ name }}
+      {{ value.name }}
     </label>
     <div class="col-xs-6">
       <input type="text"
              class="form-control"
              placeholder="0"
-             :name="name"
-             :value="text"
-             @input="update"
-             number
+             :name="value.name"
+             :value="value.text === 0 ? '' : value.text"
+             @input.stop.prevent="update"
              ></input>
     </div>
   </div>
@@ -27,23 +26,12 @@
       props: {
           value: Object,
       },
-      data() {
-          return {
-              index: this.value.index,
-              name: this.value.name,
-              text: this.value.text,
-          };
-      },
       methods: {
           update(e) {
-              this.text = e.target.value;
-              this.emitInputEvent();
-          },
-          emitInputEvent() {
               this.emitEvent('input', {
-                  index: this.index,
-                  name: this.name,
-                  text: this.text,
+                  name: this.value.name,
+                  index: this.value.index,
+                  text: e.target.value,
               });
           },
           emitEvent(eventName, value) {

@@ -12,40 +12,19 @@ export function getXScaleAsScale({ xScale }) {
     .expr(xScale.expr);
 }
 
-export function getXScaleVariables(state) {
-  return getXScale(state).variables();
+
+export function getYScale({ yScale }) {
+  return yScale;
 }
 
-
-export function getYScaleExpr({ yScale }) {
-  return yScale.expr;
+export function getYScaleAsScale({ yScale }) {
+  return scale(['Q', 'I', 'dev'])
+    .isLog(yScale.isLog)
+    .scope(yScale.scope)
+    .expr(yScale.expr);
 }
 
-export function getYScaleIsLog({ yScale }) {
-  return yScale.isLog;
-}
-
-export function getYScaleScope({ yScale }) {
-  return yScale.scope;
-}
-
-export function getYScale(state) {
-  try {
-    return scale(['Q', 'I', 'dev'])
-      .isLog(getYScaleIsLog(state))
-      .scope(getYScaleScope(state))
-      .expr(getYScaleExpr(state));
-  } catch (SyntaxError) {
-    return null;
-  }
-}
-
-export function getYScaleVariables(state) {
-  return getYScale(state).variables();
-}
-
-
-export function getDevScale(scope) {
+export function getDevScaleAsScale(scope) {
   return scale(['Q', 'I', 'dev']).expr('dev');
 }
 

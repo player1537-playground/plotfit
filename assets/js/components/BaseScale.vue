@@ -8,13 +8,13 @@
        :dropdown-label="dropdownLabel"
        :dropdown-options="dropdownOptions"
        :button-label="'log'"
-       :value="{ text: expr, button: isLog }"
+       :value="{ text: value.expr, button: value.isLog }"
        @input="sidebarInputUpdate"
        ></sidebar-input>
 
-    <div class="form-horizontal" v-show="scope.length">
+    <div class="form-horizontal" v-show="value.scope.length">
       <parameter-control
-         v-for="variable in scope"
+         v-for="variable in value.scope"
          track-by="$index"
          :value="{ name: variable.key, index: $index, text: variable.value }"
          @input="parameterControlUpdate"
@@ -44,12 +44,16 @@
               });
           },
           parameterControlUpdate(e) {
+              if (!isFinite(e.target.value.text)) {
+                  return;
+              }
+
               this.emitEvent('input', {
                   expr: this.value.expr,
                   isLog: this.value.isLog,
                   scope: [{
                       key: e.target.value.name,
-                      value: +e.target.value.text,
+                      value: Number.parseFloat(e.target.value.text),
                   }],
               });
           },

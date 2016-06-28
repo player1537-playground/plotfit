@@ -41,9 +41,8 @@
 
 <script>
 
-  import { getXScaleAsScale, getYScale, getDevScale, getData,
-           getSidebarLeft, getSidebarRight, getXScaleIsLog,
-           getYScaleIsLog } from '../vuex/getters';
+  import { getXScaleAsScale, getYScaleAsScale, getDevScaleAsScale, getData,
+           getSidebarLeft, getSidebarRight } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
 
@@ -51,10 +50,8 @@
       vuex: {
           getters: {
               xScale: getXScaleAsScale,
-              yScale: getYScale,
-              xIsLog: getXScaleIsLog,
-              yIsLog: getYScaleIsLog,
-              devScale: getDevScale,
+              yScale: getYScaleAsScale,
+              devScale: getDevScaleAsScale,
               data: getData,
               sidebarLeft: getSidebarLeft,
               sidebarRight: getSidebarRight,
@@ -65,6 +62,12 @@
           },
       },
       computed: {
+          xIsLog() {
+              return this.xScale.isLog();
+          },
+          yIsLog() {
+              return this.yScale.isLog();
+          },
           xData() {
               console.log(this, this.xScale);
               return this.data.map(d => this.xScale.apply(null, d));

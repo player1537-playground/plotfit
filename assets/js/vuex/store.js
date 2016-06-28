@@ -7,6 +7,8 @@ import { getXScale, getXScaleScope,
          getYScale, getYScaleScope,
          getFittingFunction, getFittingScope } from './getters';
 
+import { SET_XSCALE, SET_YSCALE } from './mutation-types';
+
 const state = {
   xScale: {
     expr: 'Q',
@@ -30,21 +32,16 @@ const state = {
 };
 
 const mutations = {
-  SET_XSCALE({ xScale }, { expr, scope, isLog }) {
+  [SET_XSCALE] ({ xScale }, { expr, scope, isLog }) {
     xScale.expr = expr;
     xScale.scope = scope;
     xScale.isLog = isLog;
   },
 
-  YSCALE_SET_EXPR(state, _) {
-    state.yScale.expr = _;
-    state.yScale.scope = getNewScope(_, getYScale(state), getYScaleScope(state));
-  },
-  YSCALE_SET_IS_LOG({ yScale }, _) {
-    yScale.isLog = _;
-  },
-  YSCALE_SET_SCOPE({ yScale }, _) {
-    yScale.scope = _;
+  [SET_YSCALE] ({ yScale }, { expr, scope, isLog }) {
+    yScale.expr = expr;
+    yScale.scope = scope;
+    yScale.isLog = isLog;
   },
 
   FITTING_SET_EXPR(state, _) {
