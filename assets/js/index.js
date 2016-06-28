@@ -11,10 +11,10 @@ Vue.prototype.$on = function(event, fn) {
     var array = [];
     array.push('$on');
     array.push(event);
+    array.push(this.constructor.name);
     for (var i=0; i<arguments.length; ++i) {
-      array.push(arguments[i]);
+      array.push(JSON.stringify(arguments[i], true, 2));
     }
-    array.push(this);
     console.log.apply(console, array);
     return fn.apply(this, arguments);
   });
