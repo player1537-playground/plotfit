@@ -58,7 +58,7 @@
       <div class="row">
         <div class="col-xs-12">
           <div class="btn-group-vertical">
-            <h3>Left Sidebar</h3>
+            <h3>Graph Controls</h3>
             <x-scale></x-scale>
             <y-scale></y-scale>
 
