@@ -1,13 +1,9 @@
 <style>
 
-#main-plot {
-    height: 80vh;
-}
-
 </style>
 
 <template>
-  <div id="main-plot"></div>
+  <div style="height: 80vh" v-el:plot></div>
 </template>
 
 <script>
@@ -15,8 +11,8 @@
   import BootstrapSlider from './BootstrapSlider.vue';
 
   import { getXScaleFunction, getYScaleFunction, getDevScaleFunction,
-           getData, getFittingData, getFittingFunction,
-           getFitting } from '../vuex/getters';
+           getData, getFittingData, getFittingFunction, getSidebarLeft,
+           getSidebarRight, getFitting } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
 
@@ -31,6 +27,8 @@
               fitting: getFitting,
               data: getData,
               fittingData: getFittingData,
+              sidebarLeft: getSidebarLeft,
+              sidebarRight: getSidebarRight,
           },
       },
       computed: {
@@ -39,6 +37,24 @@
           },
           yIsLog() {
               return this.yScale.isLog();
+          },
+          xLabel() {
+              return this.xScale.textExpr();
+          },
+          yLabel() {
+              return this.yScale.textExpr();
+          },
+          fitLabel() {
+              var ret = this.fittingScale.textExpr(true);
+
+              if (ret === 'undefined') {
+                  ret = 'Fitted';
+              }
+
+              return ret;
+          },
+          title() {
+              return this.yLabel + ' vs ' + this.xLabel;
           },
           xData() {
               return this.data.map(d => this.xScale.apply(null, d));
@@ -70,10 +86,10 @@
           },
       },
       attached() {
-          var graphDiv = document.getElementById("main-plot");
+          var graphDiv = this.$els.plot;
 
           var data = {
-              name: 'Data Name',
+              name: 'Data',
               x: this.xData,
               y: this.yData,
               mode: 'lines+markers',
@@ -90,7 +106,7 @@
           };
 
           var fit = {
-              name: 'Fitted',
+              name: this.fitLabel,
               x: this.xFitData,
               y: this.yFitData,
           };
@@ -99,14 +115,14 @@
               xaxis: {
                   autorange: true,
                   type: this.xAxisType,
-                  title: 'X Label',
+                  title: this.xLabel,
               },
               yaxis: {
                   autorange: true,
                   type: this.yAxisType,
-                  title: 'Y Label',
+                  title: this.yLabel,
               },
-              title: 'Title',
+              title: this.title,
               showlegend: true,
               legend: {
                   orientation: 'h',
@@ -125,6 +141,23 @@
 
           this.$watch('sidebarRight', function() {
               Plotly.Plots.resize(graphDiv);
+          });
+
+          this.$watch('xLabel', function(_) {
+              Plotly.relayout(graphDiv, { 'xaxis.title': _ });
+          });
+
+          this.$watch('yLabel', function(_) {
+              Plotly.relayout(graphDiv, { 'yaxis.title': _ });
+          });
+
+          this.$watch('title', function(_) {
+              Plotly.relayout(graphDiv, { 'title': _ });
+          });
+
+          this.$watch('fitLabel', function(_) {
+              graphDiv.data[1].name = _;
+              Plotly.restyle(graphDiv, { 'name': _ }, [1]);
           });
 
           this.$watch('xData', function(_) {

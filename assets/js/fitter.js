@@ -110,7 +110,7 @@ export default function fitter(parameters) {
     return my;
   };
 
-  my = rebind(my, expr, 'scope', 'expr', 'variables');
+  my = rebind(my, expr, 'scope', 'expr', 'variables', 'textExpr');
 
   return my;
 };

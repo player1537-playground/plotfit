@@ -32,6 +32,28 @@ export default function(parameters) {
     return my;
   };
 
+  my.textExpr = function(skipConstantTransform) {
+    var parsed = math.parse(expr);
+
+    if (!skipConstantTransform) {
+      var scopeLookup = {};
+
+      for (var i=0; i<scope.length; ++i) {
+        scopeLookup[scope[i].key] = scope[i].value;
+      }
+
+      parsed = parsed.transform(function(node, path, parent) {
+        if (node.isSymbolNode && !parameters.includes(node.name)) {
+          return new math.expression.node.ConstantNode(scope[node.name]);
+        } else {
+          return node;
+        }
+      });
+    }
+
+    return parsed.toString({ parenthesis: 'auto' });
+  };
+
   my.variables = function(expr) {
     var variables = math.parse(expr).filter(function(node) {
       return node.isSymbolNode && !parameters.includes(node.name);
