@@ -20,6 +20,7 @@ const state = {
     expr: '',
     scope: [],
     isFitting: false,
+    domain: [0, Infinity],
   },
   sidebar: {
     left: false,
@@ -40,10 +41,11 @@ const mutations = {
     yScale.isLog = isLog;
   },
 
-  [SET_FITTING] ({ fitting }, { expr, scope, isFitting }) {
+  [SET_FITTING] ({ fitting }, { expr, scope, isFitting, domain }) {
     fitting.expr = expr;
     fitting.scope = scope;
     fitting.isFitting = isFitting;
+    fitting.domain = domain;
   },
 
   SIDEBAR_SET_LEFT({ sidebar }, _) {

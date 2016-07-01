@@ -36,14 +36,24 @@
 
     <h3>Main Plot</h3>
     <div id="main-plot"></div>
+
+    <bootstrap-slider
+       :max="10"
+       :min="0"
+       :value="fitting.domain"
+       @input="bootstrapSliderUpdate"
+       @change="bootstrapSliderUpdate"
+       ></bootstrap-slider>
   </div>
 </template>
 
 <script>
 
+  import BootstrapSlider from './BootstrapSlider.vue';
+
   import { getXScaleFunction, getYScaleFunction, getDevScaleFunction,
            getData, getSidebarLeft, getSidebarRight, getFittingFunction,
-           getFittingData } from '../vuex/getters';
+           getFittingData, getFitting } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
 
@@ -53,7 +63,8 @@
               xScale: getXScaleFunction,
               yScale: getYScaleFunction,
               devScale: getDevScaleFunction,
-              fitting: getFittingFunction,
+              fittingScale: getFittingFunction,
+              fitting: getFitting,
               data: getData,
               fittingData: getFittingData,
               sidebarLeft: getSidebarLeft,
@@ -85,7 +96,7 @@
               return this.fittingData.map(d => d[0]);
           },
           yFitData() {
-              return this.fittingData.map(d => this.fitting.apply(null, d));
+              return this.fittingData.map(d => this.fittingScale.apply(null, d));
           },
           xAxisType() {
               return this.xIsLog ? 'log' : 'linear';
@@ -184,6 +195,14 @@
           this.$watch('yAxisType', function(_) {
               Plotly.relayout(graphDiv, { 'yaxis.type': _ });
           });
+      },
+      methods: {
+          bootstrapSliderUpdate(e) {
+              console.log('bootstrapSliderUpdate', e);
+          },
+      },
+      components: {
+          BootstrapSlider,
       },
   }
 

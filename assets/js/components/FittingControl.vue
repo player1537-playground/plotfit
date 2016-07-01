@@ -20,6 +20,7 @@
          @input="parameterControlUpdate"
          ></parameter-control>
     </div>
+
   </div>
 </template>
 
@@ -67,6 +68,9 @@
                       value: Number.parseFloat(e.target.value.text || 0),
                   }],
               });
+          },
+          bootstrapSliderUpdate(e) {
+              console.log(e);
           },
           emitSetFitting(value) {
               this.setFitting({ target: { value } });

@@ -66,7 +66,7 @@ export function setYScale({ dispatch, state }, { target: { value } }) {
 };
 
 export function setFitting({ dispatch, state }, { target: { value } }) {
-  var { expr, scope, isFitting } = value,
+  var { expr, scope, isFitting, domain } = value,
       fitting = getFittingFunction(state),
       oldScope = fitting.scope(),
       variables = fitting.variables(expr),
@@ -93,14 +93,15 @@ export function setFitting({ dispatch, state }, { target: { value } }) {
     newScope.push({ key, value: newScopeMap[key] });
   }
 
-  dispatch(SET_FITTING, { expr, isFitting, scope: newScope });
+  dispatch(SET_FITTING, { expr, isFitting, domain, scope: newScope });
 };
 
 export function fitFittingFunction({ dispatch, state }) {
   getFittingFunction(state).recalculate(function(fitter) {
     dispatch(SET_FITTING, {
-      expr: fitter.expr(),
-      isFitting: fitter.isFitting(),
+      expr: state.fitting.expr,
+      isFitting: state.fitting.isFitting,
+      domain: state.fitting.domain,
       scope: fitter.scope(),
     });
   });
