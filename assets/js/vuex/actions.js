@@ -73,6 +73,11 @@ export function setFitting({ dispatch, state }, { target: { value } }) {
       newScopeMap = {},
       newScope = [];
 
+  if (typeof expr === 'undefined') expr = state.fitting.expr;
+  if (typeof scope === 'undefined') scope = state.fitting.scope;
+  if (typeof isFitting === 'undefined') isFitting = state.fitting.isFitting;
+  if (typeof domain === 'undefined') domain = state.fitting.domain;
+
   for (var i=0; i<variables.length; ++i) {
     newScopeMap[variables[i]] = 0.0;
   }
@@ -106,7 +111,6 @@ export function fitFittingFunction({ dispatch, state }) {
     });
   });
 };
-
 
 
 export function setSidebarLeft({ dispatch }, _) {

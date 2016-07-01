@@ -38,6 +38,7 @@ export function getFittingFunction(state) {
     .isFitting(state.fitting.isFitting)
     .scope(state.fitting.scope)
     .expr(state.fitting.expr)
+    .domain(state.fitting.domain)
     .data(getFittingData(state));
 }
 

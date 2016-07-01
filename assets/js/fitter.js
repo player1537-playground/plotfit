@@ -76,6 +76,7 @@ export function fit(data, expr) {
 export default function fitter(parameters) {
   var expr = expression(parameters),
       isFitting = false,
+      domain = [0, Infinity],
       data = null;
 
   function my() {
@@ -94,8 +95,16 @@ export default function fitter(parameters) {
     return my;
   };
 
+  my.domain = function(_) {
+    if (!arguments.length) return domain;
+    domain = _;
+    return my;
+  };
+
   my.recalculate = function(callback) {
-    fit(data, expr);
+    var currentData = data.filter((d, i) => domain[0] <= i && i < domain[1]);
+
+    fit(currentData, expr);
     callback(my);
 
     return my;

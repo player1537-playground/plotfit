@@ -1,6 +1,6 @@
 <template>
   <div>
-    <input type="text" v-el:slider></input>
+    <input style="width: 100%" type="text" v-el:slider></input>
   </div>
 </template>
 
@@ -27,6 +27,17 @@
 
           this.slider.on('slide', this.sliderSlideUpdate);
           this.slider.on('slideStop', this.sliderSlideStopUpdate);
+      },
+      watch: {
+          min() {
+              this.slider.setAttribute('min', this.min);
+          },
+          max() {
+              this.slider.setAttribute('max', this.max);
+          },
+          value() {
+              this.slider.setValue(this.value);
+          },
       },
       methods: {
           sliderSlideUpdate(value) {
