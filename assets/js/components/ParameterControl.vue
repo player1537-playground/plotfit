@@ -23,6 +23,7 @@
 <script>
 
   export default {
+      name: 'ParameterControl',
       props: {
           value: Object,
       },

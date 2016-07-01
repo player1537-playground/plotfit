@@ -11,7 +11,7 @@
       </button>
       <ul class="dropdown-menu">
         <li v-for="option in dropdownOptions">
-          <a href="#!" value="option" @click.stop.prevent="updateText">{{ option }}</a>
+          <a href="#!" :data-value="option" @click="updateText">{{ option }}</a>
         <li>
       </ul>
       <label class="btn btn-default">
@@ -38,7 +38,7 @@
       methods: {
           updateText(e) {
               this.emitEvent('input', {
-                  text: e.target.value,
+                  text: e.target.value || e.target.dataset.value,
                   button: this.value.button,
               });
           },
