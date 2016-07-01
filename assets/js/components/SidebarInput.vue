@@ -15,11 +15,12 @@
         <li>
       </ul>
       <label class="btn btn-default">
-        <input type="checkbox" @click.stop.prevent="updateButton" :value="value.button">
+        <input type="checkbox" @change.stop.prevent="updateButton"
+               v-model="value.button">
         <span>{{ buttonLabel }}<span>
       </label>
     </div>
-    <input type="text" class="form-control pull-left" :value="value.text"
+    <input type="text" class="form-control pull-left" v-model="value.text"
            @input.stop.prevent="updateText" />
   </div>
 </template>
@@ -34,29 +35,20 @@
           buttonLabel: String,
           value: Object,
       },
-      data() {
-          return {
-              text: this.value.text,
-              button: this.value.button,
-          };
-      },
       methods: {
           updateText(e) {
-              this.text = e.target.value;
-              this.emitInputEvent();
+              this.emitEvent('input', {
+                  text: e.target.value,
+                  button: this.value.button,
+              });
           },
           updateButton(e) {
-              this.button = e.target.value;
-              this.emitInputEvent();
-          },
-          emitInputEvent() {
               this.emitEvent('input', {
-                  text: this.text,
-                  button: this.button,
+                  text: this.value.text,
+                  button: e.target.checked,
               });
           },
           emitEvent(eventName, value) {
-              console.log(eventName, value);
               this.$emit(eventName, { target: { value } });
           },
       },

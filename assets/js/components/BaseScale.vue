@@ -53,7 +53,7 @@
                   isLog: this.value.isLog,
                   scope: [{
                       key: e.target.value.name,
-                      value: Number.parseFloat(e.target.value.text),
+                      value: Number.parseFloat(e.target.value.text || 0),
                   }],
               });
           },

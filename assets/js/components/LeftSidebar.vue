@@ -63,7 +63,7 @@
             <y-scale></y-scale>
 
             <h3>Fitting Controls</h3>
-            <!-- <fitting-control></fitting-control> -->
+            <fitting-control></fitting-control>
           </div>
         </div>
       </div>

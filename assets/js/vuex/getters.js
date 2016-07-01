@@ -5,7 +5,7 @@ export function getXScale({ xScale }) {
   return xScale;
 }
 
-export function getXScaleAsScale({ xScale }) {
+export function getXScaleFunction({ xScale }) {
   return scale(['Q', 'I', 'dev'])
     .isLog(xScale.isLog)
     .scope(xScale.scope)
@@ -17,36 +17,27 @@ export function getYScale({ yScale }) {
   return yScale;
 }
 
-export function getYScaleAsScale({ yScale }) {
+export function getYScaleFunction({ yScale }) {
   return scale(['Q', 'I', 'dev'])
     .isLog(yScale.isLog)
     .scope(yScale.scope)
     .expr(yScale.expr);
 }
 
-export function getDevScaleAsScale(scope) {
+export function getDevScaleFunction(scope) {
   return scale(['Q', 'I', 'dev']).expr('dev');
 }
 
 
-export function getFittingExpr({ fitting }) {
-  return fitting.expr;
+export function getFitting({ fitting }) {
+  return fitting;
 }
 
-export function getFittingScope({ fitting }) {
-  return fitting.scope;
-}
-
-export function getFittingIsFitting({ fitting }) {
-  return fitting.isFitting;
-}
-
-export function getFittingFunction(state) {
+export function getFittingFunction({ fitting }) {
   return fitter(['X'])
-    .isFitting(getFittingIsFitting(state))
-    .scope(getFittingScope(state))
-    .expr(getFittingExpr(state))
-    .data(getData(state));
+    .isFitting(fitting.isFitting)
+    .scope(fitting.scope)
+    .expr(fitting.expr);
 }
 
 

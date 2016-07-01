@@ -1,12 +1,11 @@
-import { getXScaleAsScale, getYScaleAsScale } from './getters';
-import { SET_XSCALE, SET_YSCALE } from './mutation-types';
+import { getXScaleFunction, getYScaleFunction,
+         getFittingFunction } from './getters';
+import { SET_XSCALE, SET_YSCALE, SET_FITTING } from './mutation-types';
 
-export const setXScale = function({ dispatch, state }, e) {
-  var expr = e.target.value.expr,
-      scopeToAdd = e.target.value.scope,
-      isLog = e.target.value.isLog,
-      scale = getXScaleAsScale(state),
-      scope = scale.scope(),
+export function setXScale({ dispatch, state }, { target: { value } }) {
+  var { expr, scope, isLog } = value,
+      scale = getXScaleFunction(state),
+      oldScope = scale.scope(),
       variables = scale.variables(expr),
       newScopeMap = {},
       newScope = [];
@@ -15,15 +14,15 @@ export const setXScale = function({ dispatch, state }, e) {
     newScopeMap[variables[i]] = 0.0;
   }
 
-  for (i=0; i<scope.length; ++i) {
-    if (variables.includes(scope[i].key)) {
-      newScopeMap[scope[i].key] = scope[i].value;
+  for (i=0; i<oldScope.length; ++i) {
+    if (variables.includes(oldScope[i].key)) {
+      newScopeMap[oldScope[i].key] = oldScope[i].value;
     }
   }
 
-  for (i=0; i<scopeToAdd.length; ++i) {
-    if (variables.includes(scopeToAdd[i].key)) {
-      newScopeMap[scopeToAdd[i].key] = scopeToAdd[i].value;
+  for (i=0; i<scope.length; ++i) {
+    if (variables.includes(scope[i].key)) {
+      newScopeMap[scope[i].key] = scope[i].value;
     }
   }
 
@@ -35,12 +34,10 @@ export const setXScale = function({ dispatch, state }, e) {
 };
 
 
-export const setYScale = function({ dispatch, state }, e) {
-  var expr = e.target.value.expr,
-      scopeToAdd = e.target.value.scope,
-      isLog = e.target.value.isLog,
-      scale = getYScaleAsScale(state),
-      scope = scale.scope(),
+export function setYScale({ dispatch, state }, { target: { value } }) {
+  var { expr, scope, isLog } = value,
+      scale = getYScaleFunction(state),
+      oldScope = scale.scope(),
       variables = scale.variables(expr),
       newScopeMap = {},
       newScope = [];
@@ -49,15 +46,15 @@ export const setYScale = function({ dispatch, state }, e) {
     newScopeMap[variables[i]] = 0.0;
   }
 
-  for (i=0; i<scope.length; ++i) {
-    if (variables.includes(scope[i].key)) {
-      newScopeMap[scope[i].key] = scope[i].value;
+  for (i=0; i<oldScope.length; ++i) {
+    if (variables.includes(oldScope[i].key)) {
+      newScopeMap[oldScope[i].key] = oldScope[i].value;
     }
   }
 
-  for (i=0; i<scopeToAdd.length; ++i) {
-    if (variables.includes(scopeToAdd[i].key)) {
-      newScopeMap[scopeToAdd[i].key] = scopeToAdd[i].value;
+  for (i=0; i<scope.length; ++i) {
+    if (variables.includes(scope[i].key)) {
+      newScopeMap[scope[i].key] = scope[i].value;
     }
   }
 
@@ -68,21 +65,38 @@ export const setYScale = function({ dispatch, state }, e) {
   dispatch(SET_YSCALE, { expr, isLog, scope: newScope });
 };
 
+export function setFitting({ dispatch, state }, { target: { value } }) {
+  var { expr, scope, isFitting } = value,
+      fitting = getFittingFunction(state),
+      oldScope = fitting.scope(),
+      variables = fitting.variables(expr),
+      newScopeMap = {},
+      newScope = [];
 
+  for (var i=0; i<variables.length; ++i) {
+    newScopeMap[variables[i]] = 0.0;
+  }
 
-export const setFittingExpr = function({ dispatch }, _) {
-  dispatch('FITTING_SET_EXPR', _);
+  for (i=0; i<oldScope.length; ++i) {
+    if (variables.includes(oldScope[i].key)) {
+      newScopeMap[oldScope[i].key] = oldScope[i].value;
+    }
+  }
+
+  for (i=0; i<scope.length; ++i) {
+    if (variables.includes(scope[i].key)) {
+      newScopeMap[scope[i].key] = scope[i].value;
+    }
+  }
+
+  for (var key in newScopeMap) {
+    newScope.push({ key, value: newScopeMap[key] });
+  }
+
+  dispatch(SET_FITTING, { expr, isFitting, scope: newScope });
 };
 
-export const setFittingIsFitting = function({ dispatch }, _) {
-  dispatch('FITTING_SET_IS_FITTING', _);
-};
-
-export const setFittingScope = function({ dispatch }, _) {
-  dispatch('FITTING_SET_SCOPE', _);
-};
-
-export const fitFittingFunction = function({ dispatch, state }, _) {
+export function fitFittingFunction({ dispatch, state }, _) {
   getFittingFunction(state).recalculate(function(fitter) {
     dispatch('FITTING_SET_SCOPE', fitter.scope());
   });
@@ -90,10 +104,10 @@ export const fitFittingFunction = function({ dispatch, state }, _) {
 
 
 
-export const setSidebarLeft = function({ dispatch }, _) {
+export function setSidebarLeft({ dispatch }, _) {
   dispatch('SIDEBAR_SET_LEFT', _);
 };
 
-export const setSidebarRight = function({ dispatch }, _) {
+export function setSidebarRight({ dispatch }, _) {
   dispatch('SIDEBAR_SET_RIGHT', _);
 };

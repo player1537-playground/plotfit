@@ -41,7 +41,7 @@
 
 <script>
 
-  import { getXScaleAsScale, getYScaleAsScale, getDevScaleAsScale, getData,
+  import { getXScaleFunction, getYScaleFunction, getDevScaleFunction, getData,
            getSidebarLeft, getSidebarRight } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
@@ -49,9 +49,9 @@
   export default {
       vuex: {
           getters: {
-              xScale: getXScaleAsScale,
-              yScale: getYScaleAsScale,
-              devScale: getDevScaleAsScale,
+              xScale: getXScaleFunction,
+              yScale: getYScaleFunction,
+              devScale: getDevScaleFunction,
               data: getData,
               sidebarLeft: getSidebarLeft,
               sidebarRight: getSidebarRight,

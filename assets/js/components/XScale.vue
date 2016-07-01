@@ -8,7 +8,7 @@
        :dropdown-label="'X = '"
        :dropdown-options="['Q', 'log(Q)', 'Q^2']"
        :value="{ expr: xScale.expr, isLog: xScale.isLog, scope: xScale.scope }"
-       @input="updateXScale"
+       @input="setXScale"
        >
     </base-scale>
 
@@ -30,11 +30,6 @@
           },
           actions: {
               setXScale,
-          },
-      },
-      methods: {
-          updateXScale(e) {
-              this.setXScale(e);
           },
       },
       components: {

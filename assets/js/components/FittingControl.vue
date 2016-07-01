@@ -5,21 +5,19 @@
 <template>
   <div>
     <sidebar-input
-       dropdown-label="Fit"
+       :dropdown-label="'Fit'"
        :dropdown-options="['m*X+b']"
-       :input-text="expr"
-       @input-text="setExpr"
-       :button-state="isFitting"
-       @button-state="setIsFitting"
+       :button-label="'Fit'"
+       :value="{ text: fitting.expr, button: fitting.isFitting }"
+       @input="sidebarInputUpdate"
        ></sidebar-input>
 
-    <div class="form-horizontal" v-show="scope.length">
+    <div class="form-horizontal" v-show="fitting.scope.length">
       <parameter-control
-         v-for="variable in scope"
-         :key="variable.key"
-         :index="$index"
-         :value="variable.value"
-         @value="updateScope"
+         v-for="variable in fitting.scope"
+         track-by="$index"
+         :value="{ name: variable.key, index: $index, text: variable.value }"
+         @input="parameterControlUpdate"
          ></parameter-control>
     </div>
   </div>
@@ -30,36 +28,43 @@
   import SidebarInput from './SidebarInput.vue';
   import ParameterControl from './ParameterControl.vue';
 
-  import { getFittingExpr,
-           getFittingScope,
-           getFittingIsFitting } from '../vuex/getters';
-  import { setFittingExpr,
-           setFittingIsFitting,
-           setFittingScope } from '../vuex/actions';
-
-  import fitter from '../fitter';
+  import { getFitting } from '../vuex/getters';
+  import { setFitting } from '../vuex/actions';
 
   export default {
-      data: function() {
-          return {
-          };
-      },
+      name: 'FittingControl',
       vuex: {
           getters: {
-              expr: getFittingExpr,
-              isFitting: getFittingIsFitting,
-              scope: getFittingScope,
+              fitting: getFitting,
           },
           actions: {
-              setExpr: setFittingExpr,
-              setIsFitting: setFittingIsFitting,
-              setScope: setFittingScope,
+              setFitting,
           },
       },
       methods: {
-          updateScope({ key, index, value }) {
-              this.scope.$set(index, { key, value });
-              this.setScope(this.scope);
+          sidebarInputUpdate(e) {
+              this.emitSetFitting({
+                  expr: e.target.value.text,
+                  isFitting: e.target.value.button,
+                  scope: [],
+              });
+          },
+          parameterControlUpdate(e) {
+              if (!isFinite(e.target.value.text)) {
+                  return;
+              }
+
+              this.emitSetFitting({
+                  expr: this.fitting.expr,
+                  isFitting: this.fitting.isFitting,
+                  scope: [{
+                      key: e.target.value.name,
+                      value: Number.parseFloat(e.target.value.text || 0),
+                  }],
+              });
+          },
+          emitSetFitting(value) {
+              this.setFitting({ target: { value } });
           },
       },
       components: {

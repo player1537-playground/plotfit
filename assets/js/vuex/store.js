@@ -3,11 +3,7 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-import { getXScale, getXScaleScope,
-         getYScale, getYScaleScope,
-         getFittingFunction, getFittingScope } from './getters';
-
-import { SET_XSCALE, SET_YSCALE } from './mutation-types';
+import { SET_XSCALE, SET_YSCALE, SET_FITTING } from './mutation-types';
 
 const state = {
   xScale: {
@@ -21,7 +17,7 @@ const state = {
     isLog: false,
   },
   fitting: {
-    expr: 'm*X+b',
+    expr: '',
     scope: [],
     isFitting: false,
   },
@@ -44,19 +40,10 @@ const mutations = {
     yScale.isLog = isLog;
   },
 
-  FITTING_SET_EXPR(state, _) {
-    state.fitting.expr = _;
-    state.fitting.scope = getNewScope.apply(null, [
-      _,
-      getFittingFunction(state),
-      getFittingScope(state),
-    ]);
-  },
-  FITTING_SET_IS_FITTING({ fitting }, _) {
-    fitting.isLog = _;
-  },
-  FITTING_SET_SCOPE({ fitting }, _) {
-    fitting.scope = _;
+  [SET_FITTING] ({ fitting }, { expr, scope, isFitting }) {
+    fitting.expr = expr;
+    fitting.scope = scope;
+    fitting.isFitting = isFitting;
   },
 
   SIDEBAR_SET_LEFT({ sidebar }, _) {
