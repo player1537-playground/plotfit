@@ -37,9 +37,13 @@
       },
       methods: {
           sidebarInputUpdate(e) {
+              var newIsLog = e.target.value.button
+                  ? !this.value.isLog
+                  : this.value.isLog;
+
               this.emitEvent('input', {
                   expr: e.target.value.text,
-                  isLog: e.target.value.button,
+                  isLog: newIsLog,
                   scope: [],
               });
           },

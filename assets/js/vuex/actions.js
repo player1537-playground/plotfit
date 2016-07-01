@@ -96,9 +96,13 @@ export function setFitting({ dispatch, state }, { target: { value } }) {
   dispatch(SET_FITTING, { expr, isFitting, scope: newScope });
 };
 
-export function fitFittingFunction({ dispatch, state }, _) {
+export function fitFittingFunction({ dispatch, state }) {
   getFittingFunction(state).recalculate(function(fitter) {
-    dispatch('FITTING_SET_SCOPE', fitter.scope());
+    dispatch(SET_FITTING, {
+      expr: fitter.expr(),
+      isFitting: fitter.isFitting(),
+      scope: fitter.scope(),
+    });
   });
 };
 

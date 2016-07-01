@@ -29,7 +29,7 @@
   import ParameterControl from './ParameterControl.vue';
 
   import { getFitting } from '../vuex/getters';
-  import { setFitting } from '../vuex/actions';
+  import { setFitting, fitFittingFunction } from '../vuex/actions';
 
   export default {
       name: 'FittingControl',
@@ -39,15 +39,20 @@
           },
           actions: {
               setFitting,
+              fitFittingFunction,
           },
       },
       methods: {
           sidebarInputUpdate(e) {
-              this.emitSetFitting({
-                  expr: e.target.value.text,
-                  isFitting: e.target.value.button,
-                  scope: [],
-              });
+              if (e.target.value.button) {
+                  this.fitFittingFunction();
+              } else {
+                  this.emitSetFitting({
+                      expr: e.target.value.text,
+                      isFitting: e.target.value.button,
+                      scope: [],
+                  });
+              }
           },
           parameterControlUpdate(e) {
               if (!isFinite(e.target.value.text)) {

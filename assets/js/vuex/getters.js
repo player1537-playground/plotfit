@@ -33,11 +33,12 @@ export function getFitting({ fitting }) {
   return fitting;
 }
 
-export function getFittingFunction({ fitting }) {
+export function getFittingFunction(state) {
   return fitter(['X'])
-    .isFitting(fitting.isFitting)
-    .scope(fitting.scope)
-    .expr(fitting.expr);
+    .isFitting(state.fitting.isFitting)
+    .scope(state.fitting.scope)
+    .expr(state.fitting.expr)
+    .data(getFittingData(state));
 }
 
 
@@ -144,7 +145,17 @@ export function getData(state) {
 }
 
 export function getFittingData(state) {
-  return getData(state);
+  var xScale = getXScaleFunction(state),
+      yScale = getYScaleFunction(state),
+      devScale = getDevScaleFunction(state);
+
+  return getData(state).map(d => {
+    return [
+      xScale.apply(null, d),
+      yScale.apply(null, d),
+      devScale.apply(null, d),
+    ];
+  });
 };
 
 export function getSidebarLeft({ sidebar }) {

@@ -14,11 +14,11 @@
           <a href="#!" :data-value="option" @click="updateText">{{ option }}</a>
         <li>
       </ul>
-      <label class="btn btn-default">
-        <input type="checkbox" @change.stop.prevent="updateButton"
-               v-model="value.button">
-        <span>{{ buttonLabel }}<span>
-      </label>
+      <button type="button" class="btn btn-default"
+              :class="{ active: value.button }"
+              @click="updateButton">
+        {{ buttonLabel }}
+      </button>
     </div>
     <input type="text" class="form-control pull-left" v-model="value.text"
            @input.stop.prevent="updateText" />
@@ -39,13 +39,13 @@
           updateText(e) {
               this.emitEvent('input', {
                   text: e.target.value || e.target.dataset.value,
-                  button: this.value.button,
+                  button: false,
               });
           },
           updateButton(e) {
               this.emitEvent('input', {
                   text: this.value.text,
-                  button: e.target.checked,
+                  button: true,
               });
           },
           emitEvent(eventName, value) {

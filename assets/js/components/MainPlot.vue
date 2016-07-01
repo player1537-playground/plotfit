@@ -41,8 +41,9 @@
 
 <script>
 
-  import { getXScaleFunction, getYScaleFunction, getDevScaleFunction, getData,
-           getSidebarLeft, getSidebarRight } from '../vuex/getters';
+  import { getXScaleFunction, getYScaleFunction, getDevScaleFunction,
+           getData, getSidebarLeft, getSidebarRight, getFittingFunction,
+           getFittingData } from '../vuex/getters';
   import { setSidebarLeft, setSidebarRight } from '../vuex/actions';
   import Plotly from 'plotly.js';
 
@@ -52,7 +53,9 @@
               xScale: getXScaleFunction,
               yScale: getYScaleFunction,
               devScale: getDevScaleFunction,
+              fitting: getFittingFunction,
               data: getData,
+              fittingData: getFittingData,
               sidebarLeft: getSidebarLeft,
               sidebarRight: getSidebarRight,
           },
@@ -77,6 +80,12 @@
           },
           devData() {
               return this.data.map(d => this.devScale.apply(null, d));
+          },
+          xFitData() {
+              return this.fittingData.map(d => d[0]);
+          },
+          yFitData() {
+              return this.fittingData.map(d => this.fitting.apply(null, d));
           },
           xAxisType() {
               return this.xIsLog ? 'log' : 'linear';
@@ -105,6 +114,12 @@
               },
           };
 
+          var fit = {
+              name: 'Fitted',
+              x: this.xFitData,
+              y: this.yFitData,
+          };
+
           var layout = {
               xaxis: {
                   autorange: true,
@@ -127,7 +142,7 @@
               showLink: true,
           };
 
-          Plotly.newPlot(graphDiv, [data], layout, options);
+          Plotly.newPlot(graphDiv, [data, fit], layout, options);
 
           this.$watch('sidebarLeft', function() {
               Plotly.Plots.resize(graphDiv);
@@ -149,6 +164,16 @@
 
           this.$watch('devData', function(_) {
               graphDiv.data[0].error_y.array = _;
+              Plotly.redraw(graphDiv);
+          });
+
+          this.$watch('xFitData', function(_) {
+              graphDiv.data[1].x = _;
+              Plotly.redraw(graphDiv);
+          });
+
+          this.$watch('yFitData', function(_) {
+              graphDiv.data[1].y = _;
               Plotly.redraw(graphDiv);
           });
 
