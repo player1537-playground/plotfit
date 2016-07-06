@@ -1,54 +1,24 @@
-.MAKEFLAGS += --warn-undefined-variables
-SHELL := /bin/bash
+MAKEFLAGS += --warn-undefined-variables
+SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
+.DEFAULT_GOAL := all
+.DELETE_ON_ERROR:
+.SUFFIXES:
 
-ifndef PYTHON
-PYTHON := $(firstword $(shell which python2 python2.7 python))
+ifndef SERVER
+SERVER := python3 -m http.server 8888
 endif
 
-ifndef NPM
-NPM := $(firstword $(shell which npm))
-endif
+all:
+	$(MAKE) -j 2 watcher server
 
-ifndef WEBPACK
-WEBPACK := $(firstword node_modules/.bin/webpack)
-endif
+.PHONY: server
+server:
+	$(SERVER)
 
-export DJANGO_COLORS := nocolor
+.PHONY: watcher
+watcher:
+	while true; do ls -d src/*.html | entr -d make index.html || break; done
 
-ifndef DJANGO_PORT
-DJANGO_PORT := 8000
-endif
-
-.PHONY: runserver
-runserver:
-	$(WEBPACK) --config webpack.config.js --watch & \
-	$(PYTHON) manage.py runserver 0.0.0.0:$(DJANGO_PORT)
-
-.PHONY: collectstatic
-collectstatic:
-	$(PYTHON) manage.py collectstatic
-
-.PHONY: makemigrations
-makemigrations:
-	$(PYTHON) manage.py makemigrations
-
-.PHONY: createsuperuser
-createsuperuser:
-	$(PYTHON) manage.py createsuperuser
-
-.PHONY: migrate
-migrate:
-	$(PYTHON) manage.py migrate
-
-.PHONY: depend-python
-depend-python:
-	$(PYTHON) -m pip install -r requirements.txt
-
-.PHONY: depend-javascript
-depend-javascript:
-	$(NPM) --no-colors install
-
-.PHONY: clean
-clean:
-	rm -rf -- raw/ sectioned/
+index.html: $(wildcard src/*.html)
+	cat $^ > $@

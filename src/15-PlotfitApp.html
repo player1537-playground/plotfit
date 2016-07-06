@@ -1,0 +1,20 @@
+<script type="text/html" id="PlotfitApp" >
+    <div>
+        <p>{{ message }}</p>
+        <input type="text" v-model="message" >
+    </div>
+</script>
+
+<script>
+module(function(exports, {}) {
+    exports.components.PlotfitApp = {
+        name: 'PlotfitApp',
+        template: '#PlotfitApp',
+        data() {
+            return {
+                message: 'Foo',
+            };
+        },
+    };
+});
+</script>

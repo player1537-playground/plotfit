@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta charset="UTF-8" >
+<title>PlotFit</title>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/css/bootstrap-slider.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<body>
+<script type="text/javascript" src="https://vuejs.org/js/vue.js"></script>
+<script>
+function ProxyMaker(depth=0) {
+    return new Proxy({}, {
+        get(target, name) {
+            console.log(depth, 'GET', name);
+            if (name !== '__proto__' && name !== 'splice') {
+                if (!target.hasOwnProperty(name) && depth < 10) {
+                    target[name] = ProxyMaker(depth + 1);
+                }
+            }
+            return target[name];
+        },
+        set(target, name, value) {
+            target[name] = value;
+        },
+    });
+}
+
+_module = ProxyMaker();
+
+function module(fn) {
+    var exports = new ProxyMaker();
+    fn(exports, _module);
+
+    copy(_module, exports);
+
+    function copy(target, source) {
+        for (var key in source) {
+            if (!Object.prototype.hasOwnProperty.call(source, key)) {
+                continue;
+            }
+
+            if (source[key] instanceof ProxyMaker) {
+                copy(target[key], source[key]);
+            } else if (typeof source[key] === 'object') {
+                target[key] = source[key];
+            } else {
+                target[key] = source[key];
+            }
+        }
+    }
+}
+</script>
+<script type="text/html" id="PlotfitApp" >
+    <div>
+        <p>{{ message }}</p>
+        <input type="text" v-model="message" >
+    </div>
+</script>
+
+<script>
+module(function(exports, {}) {
+    exports.components.PlotfitApp = {
+        name: 'PlotfitApp',
+        template: '#PlotfitApp',
+        data() {
+            return {
+                message: 'Foo',
+            };
+        },
+    };
+});
+</script>
+<plotfit-app></plotfit-app>
+<script>
+module(function(exports, { components: { PlotfitApp } }) {
+    new Vue({
+        el: 'body',
+        components: {
+            PlotfitApp,
+        },
+    });
+});
+</script>
