@@ -20,5 +20,21 @@ server:
 watcher:
 	while true; do ls -d src/*.html | entr -d make index.html || break; done
 
+.PHONY: renumber
+renumber:
+	mkdir src2
+	for f in src/*.html; do \
+		git ls-files "$$f" --error-unmatch || exit 1; \
+	done
+	i=0; \
+	for f in src/*.html; do \
+		x=$$(printf "src2/%02d-$${f#*-}" "$$i"); \
+		git mv "$$f" "$$x"; \
+		i=$$((i+5)); \
+	done
+	rm -r src
+	git mv src2 src
+
 index.html: $(wildcard src/*.html)
+	find . -name '*~' -exec rm {} \+
 	cat $^ > $@
