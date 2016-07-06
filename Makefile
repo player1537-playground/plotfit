@@ -31,7 +31,7 @@ renumber:
 	done
 	i=0; \
 	for f in src/*.html; do \
-		x=$$(printf "src2/%02d-$${f#*-}" "$$i"); \
+		x=$$(printf "src2/%03d-$${f#*-}" "$$i"); \
 		git mv "$$f" "$$x"; \
 		i=$$((i+5)); \
 	done

@@ -1,0 +1,39 @@
+<script type="text/html" id="XScale" >
+    <div>
+        <base-scale
+            :dropdown-label="'Y = '"
+            :dropdown-options="['I', 'log(I)', 'I^2']"
+            :value="{ expr: yScale.expr, isLog: yScale.isLog, scope: yScale.scope }"
+            @input="setYScale"
+        >
+        </base-scale>
+
+    </div>
+</script>
+
+<script>
+module(function(exports, {
+    components: { BaseScale },
+    vuex: {
+        getters: { getXScale },
+        actions: { setXScale },
+    },
+}) {
+
+    exports.components.XScale = {
+        name: 'XScale',
+        template: '#XScale',
+        vuex: {
+            getters: {
+                yScale: getXScale,
+            },
+            actions: {
+                setXScale,
+            },
+        },
+        components: {
+            BaseScale,
+        },
+    };
+});
+</script>
