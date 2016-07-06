@@ -5,6 +5,11 @@ module(function(exports, {
     components: { PlotfitApp },
 }) {
 
+    console.log(PlotfitApp);
+
+    Vue.config.devtools = true;
+    Vue.config.debug = true;
+
     new Vue({
         el: 'body',
         components: {

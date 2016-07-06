@@ -15,8 +15,6 @@ function ProxyMaker(depth=0) {
                 return true;
             }
 
-            console.log(depth, 'GET', name);
-
             if (!(name in target)) {
                 if (depth < 10) {
                     target[name] = ProxyMaker(depth + 1);
@@ -26,7 +24,6 @@ function ProxyMaker(depth=0) {
             return target[name];
         },
         set(target, name, value) {
-            console.log(depth, 'SET', name, value);
             target[name] = value;
         },
     });
@@ -38,7 +35,7 @@ function module(fn) {
     var exports = new ProxyMaker();
     fn(exports, _module);
 
-    function p(name, _) {
+    function print(name, _) {
         try {
             console.log(name, JSON.stringify(_, true, 2));
         } catch (e) {
@@ -47,7 +44,10 @@ function module(fn) {
         return _;
     }
 
-    console.log(_module);
+    function noop() {}
+
+    p = noop;
+
     copy(_module, exports);
     p('_module', _module);
 

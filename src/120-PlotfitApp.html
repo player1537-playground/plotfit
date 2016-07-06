@@ -1,20 +1,24 @@
 <script type="text/html" id="PlotfitApp" >
     <div id="wrapper" :class="{ 'toggled-right': sidebar.right, 'toggled-left': sidebar.left }">
         <left-sidebar></left-sidebar>
-        <!-- <right-sidebar></right-sidebar> -->
+        <right-sidebar></right-sidebar>
         <main-plot></main-plot>
     </div>
 </script>
 
 <script>
 module(function(exports, {
-    components: { LeftSidebar, MainPlot, RightSidebar },
+    components: {
+        LeftSidebar,
+        MainPlot,
+        RightSidebar,
+    },
     vuex: {
         store,
         getters: { getSidebar },
     },
 }) {
-    console.log('STORE', store);
+
     exports.components.PlotfitApp = {
         name: 'PlotfitApp',
         template: '#PlotfitApp',

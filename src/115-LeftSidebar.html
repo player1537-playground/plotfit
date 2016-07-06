@@ -51,11 +51,11 @@
                 <div class="col-xs-12">
                     <div class="btn-group-vertical">
                         <h3>Graph Controls</h3>
-                        <!-- <x-scale></x-scale> -->
-                        <!-- <y-scale></y-scale> -->
+                        <x-scale></x-scale>
+                        <y-scale></y-scale>
 
                         <h3>Fitting Controls</h3>
-                        <!-- <fitting-control></fitting-control> -->
+                        <fitting-control></fitting-control>
                     </div>
                 </div>
             </div>
@@ -64,7 +64,14 @@
 </script>
 
 <script>
-module(function(exports, { components: { XScale, YScale, FittingControl } }) {
+module(function(exports, {
+    components: {
+        XScale,
+        YScale,
+        FittingControl,
+    },
+}) {
+
     exports.components.LeftSidebar = {
         name: 'LeftSidebar',
         template: '#LeftSidebar',

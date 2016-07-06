@@ -27,16 +27,16 @@
             <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
         </a>
 
-        <!-- <plotly-plot></plotly-plot> -->
+        <plotly-plot></plotly-plot>
 
         <div style="width: 100%">
-            <!-- <bootstrap-slider
+            <bootstrap-slider
                  :max="fittingData.length"
                  :min="0"
                  :value="fitting.domain"
                  @input="bootstrapSliderUpdate"
                  @change="bootstrapSliderUpdate"
-                 ></bootstrap-slider> -->
+                 ></bootstrap-slider>
         </div>
     </div>
 </script>
@@ -48,17 +48,19 @@ module(function(exports, {
         BootstrapSlider,
     },
     vuex: {
-        getters: { getSidebar },
+        getters: { getSidebar, getFittingData, getFitting },
         actions: { setSidebar },
     },
 }) {
-    console.log('getSidebar', getSidebar);
+
     exports.components.MainPlot = {
         name: 'MainPlot',
         template: '#MainPlot',
         vuex: {
             getters: {
                 sidebar: getSidebar,
+                fittingData: getFittingData,
+                fitting: getFitting,
             },
             actions: {
                 setSidebar,

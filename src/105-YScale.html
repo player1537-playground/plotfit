@@ -1,4 +1,4 @@
-<script type="text/html" id="XScale" >
+<script type="text/html" id="YScale" >
     <div>
         <base-scale
             :dropdown-label="'Y = '"
@@ -15,20 +15,20 @@
 module(function(exports, {
     components: { BaseScale },
     vuex: {
-        getters: { getXScale },
-        actions: { setXScale },
+        getters: { getYScale },
+        actions: { setYScale },
     },
 }) {
 
-    exports.components.XScale = {
-        name: 'XScale',
-        template: '#XScale',
+    exports.components.YScale = {
+        name: 'YScale',
+        template: '#YScale',
         vuex: {
             getters: {
-                yScale: getXScale,
+                yScale: getYScale,
             },
             actions: {
-                setXScale,
+                setYScale,
             },
         },
         components: {

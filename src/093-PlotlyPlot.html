@@ -5,13 +5,11 @@
 <script>
 module(function(exports, {
     Plotly,
-    components: { BootstrapSlider },
     vuex: {
         getters: {
             getXScaleFunction, getYScaleFunction, getDevScaleFunction, getData,
             getFittingData, getFittingFunction, getSidebar, getFitting,
         },
-        actions: { setSidebar },
     },
 }) {
 
@@ -178,9 +176,6 @@ module(function(exports, {
             this.$watch('yAxisType', function(_) {
                 Plotly.relayout(graphDiv, { 'yaxis.type': _ });
             });
-        },
-        components: {
-            BootstrapSlider,
         },
     };
 });
