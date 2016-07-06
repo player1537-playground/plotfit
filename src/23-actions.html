@@ -1,0 +1,13 @@
+<script>
+module(function(exports, {}) {
+    exports.vuex.actions = {
+        setSidebar({ dispatch, state: { sidebar } }, { left, right }) {
+            var sidebar = { left: sidebar.left, right: sidebar.right };
+            sidebar.left = left;
+            sidebar.right = right;
+
+            dispatch('SET_SIDEBAR', sidebar);
+        },
+    };
+});
+</script>

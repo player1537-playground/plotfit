@@ -16,14 +16,14 @@
         <a class="btn btn-default menu-toggle"
            data-toggle="tooltip" data-placement="right"
            title="Click to toggle the file list sidebar."
-           @click="setSidebarLeft(!sidebarLeft)">
+           @click="updateSidebarLeft">
             <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
         </a>
 
         <a class="btn btn-default menu-toggle pull-right"
            data-toggle="tooltip"
            data-placement="left" title="Click to toggle the file list sidebar."
-           @click="setSidebarRight(!sidebarRight)">
+           @click="updateSidebarRight">
             <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span>
         </a>
 
@@ -48,24 +48,30 @@ module(function(exports, {
         BootstrapSlider,
     },
     vuex: {
-        getters: { getSidebarLeft, getSidebarRight },
-        actions: { setSidebarLeft, setSidebarRight },
+        getters: { getSidebar },
+        actions: { setSidebar },
     },
 }) {
+    console.log('getSidebar', getSidebar);
     exports.components.MainPlot = {
         name: 'MainPlot',
         template: '#MainPlot',
         vuex: {
             getters: {
-                sidebarLeft: getSidebarLeft,
-                sidebarRight: getSidebarRight,
+                sidebar: getSidebar,
             },
             actions: {
-                setSidebarLeft,
-                setSidebarRight,
+                setSidebar,
             },
         },
         methods: {
+            updateSidebarRight() {
+                console.log('foo', this.sidebar);
+                this.setSidebar({ right: !this.sidebar.right });
+            },
+            updateSidebarLeft() {
+                this.setSidebar({ left: !this.sidebar.left });
+            },
             bootstrapSliderUpdate(e) {
                 this.setFitting({ target: { value: {
                     expr: this.fitting.expr,

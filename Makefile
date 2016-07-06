@@ -20,6 +20,7 @@ server:
 watcher:
 	trap exit INT TERM; \
 	while true; do ls -d src/*.html | entr -d make index.html; done
+	rm index.html
 	false
 
 .PHONY: renumber

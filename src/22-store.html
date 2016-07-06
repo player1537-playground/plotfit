@@ -1,0 +1,24 @@
+<script>
+module(function(exports, { Vuex, Vue }) {
+    Vue.use(Vuex);
+
+    const state = {
+        sidebar: {
+            left: false,
+            right: true,
+        },
+    };
+
+    const mutations = {
+        SET_SIDEBAR({ sidebar }, { left, right }) {
+            sidebar.left = left;
+            sidebar.right = right;
+        },
+    };
+
+    exports.vuex.store = new Vuex.Store({
+        state,
+        mutations,
+    });
+});
+</script>

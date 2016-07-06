@@ -1,10 +1,18 @@
 <script>
+Function.prototype.toJSON = function() {
+    return this.name + "()";
+};
+
 function ProxyMaker(depth=0) {
     return new Proxy({}, {
         get(target, name) {
             var undesired = ['splice', 'toJSON', '__proto__'];
             if (undesired.includes(name)) {
                 return undefined;
+            }
+
+            if (name === 'isProxy') {
+                return true;
             }
 
             console.log(depth, 'GET', name);
@@ -31,10 +39,15 @@ function module(fn) {
     fn(exports, _module);
 
     function p(name, _) {
-        console.log(name, JSON.stringify(_, true, 2));
+        try {
+            console.log(name, JSON.stringify(_, true, 2));
+        } catch (e) {
+            console.log(name, _);
+        }
         return _;
     }
 
+    console.log(_module);
     copy(_module, exports);
     p('_module', _module);
 
@@ -49,16 +62,16 @@ function module(fn) {
                 continue;
             }
 
-            if (source[key] instanceof ProxyMaker) {
-                p('+recursing');
+            if (source[key].isProxy) {
+                p('+recursing', key);
                 copy(target[key], source[key]);
-                p('-recursing');
-            } else if (typeof source[key] === 'object') {
+                p('-recursing', key);
+            } else /*if (typeof source[key] === 'object') {
                 p('object', source[key]);
                 for (var k in source[key]) {
                     target[key][k] = source[key][k];
                 }
-            } else {
+            } else*/ {
                 p('other', source[key]);
                 target[key] = source[key];
             }
