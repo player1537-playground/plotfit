@@ -2,15 +2,23 @@
 function ProxyMaker(depth=0) {
     return new Proxy({}, {
         get(target, name) {
+            var undesired = ['splice', 'toJSON', '__proto__'];
+            if (undesired.includes(name)) {
+                return undefined;
+            }
+
             console.log(depth, 'GET', name);
-            if (name !== '__proto__' && name !== 'splice') {
-                if (!target.hasOwnProperty(name) && depth < 10) {
+
+            if (!(name in target)) {
+                if (depth < 10) {
                     target[name] = ProxyMaker(depth + 1);
                 }
             }
+
             return target[name];
         },
         set(target, name, value) {
+            console.log(depth, 'SET', name, value);
             target[name] = value;
         },
     });
@@ -22,19 +30,36 @@ function module(fn) {
     var exports = new ProxyMaker();
     fn(exports, _module);
 
+    function p(name, _) {
+        console.log(name, JSON.stringify(_, true, 2));
+        return _;
+    }
+
     copy(_module, exports);
+    p('_module', _module);
 
     function copy(target, source) {
+        p('target', target);
+        p('source', source);
         for (var key in source) {
+            p('key', key);
+            p('source[key]', source[key]);
             if (!Object.prototype.hasOwnProperty.call(source, key)) {
+                p('skipping', null);
                 continue;
             }
 
             if (source[key] instanceof ProxyMaker) {
+                p('+recursing');
                 copy(target[key], source[key]);
+                p('-recursing');
             } else if (typeof source[key] === 'object') {
-                target[key] = source[key];
+                p('object', source[key]);
+                for (var k in source[key]) {
+                    target[key][k] = source[key][k];
+                }
             } else {
+                p('other', source[key]);
                 target[key] = source[key];
             }
         }

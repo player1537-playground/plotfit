@@ -18,7 +18,9 @@ server:
 
 .PHONY: watcher
 watcher:
-	while true; do ls -d src/*.html | entr -d make index.html || break; done
+	trap exit INT TERM; \
+	while true; do ls -d src/*.html | entr -d make index.html; done
+	false
 
 .PHONY: renumber
 renumber:
