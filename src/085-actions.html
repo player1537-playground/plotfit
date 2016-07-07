@@ -38,7 +38,7 @@ module(function(exports, {
                 newScope.push({ key, value: newScopeMap[key] });
             }
 
-            dispatch(SET_XSCALE, { expr, isLog, scope: newScope });
+            dispatch('SET_XSCALE', { expr, isLog, scope: newScope });
         },
 
         setYScale({ dispatch, state }, { target: { value } }) {
@@ -69,7 +69,7 @@ module(function(exports, {
                 newScope.push({ key, value: newScopeMap[key] });
             }
 
-            dispatch(SET_YSCALE, { expr, isLog, scope: newScope });
+            dispatch('SET_YSCALE', { expr, isLog, scope: newScope });
         },
 
         setFitting({ dispatch, state }, { target: { value } }) {
@@ -105,7 +105,7 @@ module(function(exports, {
                 newScope.push({ key, value: newScopeMap[key] });
             }
 
-            dispatch(SET_FITTING, { expr, isFitting, domain, scope: newScope });
+            dispatch('SET_FITTING', { expr, isFitting, domain, scope: newScope });
         },
 
         fitFittingFunction({ dispatch, state }) {

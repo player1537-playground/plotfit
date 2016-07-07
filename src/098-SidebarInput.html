@@ -8,7 +8,7 @@
             <ul class="dropdown-menu">
                 <li v-for="option in dropdownOptions">
                     <a href="#!" :data-value="option" @click="updateText">{{ option }}</a>
-                    <li>
+                </li>
             </ul>
             <button type="button" class="btn btn-default"
                     :class="{ active: value.button }"
