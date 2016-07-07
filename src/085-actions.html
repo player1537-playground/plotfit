@@ -110,7 +110,7 @@ module(function(exports, {
 
         fitFittingFunction({ dispatch, state }) {
             getFittingFunction(state).recalculate(function(fitter) {
-                dispatch(SET_FITTING, {
+                dispatch('SET_FITTING', {
                     expr: state.fitting.expr,
                     isFitting: state.fitting.isFitting,
                     domain: state.fitting.domain,

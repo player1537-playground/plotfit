@@ -67,11 +67,18 @@ module(function(exports, {
                     return withinRange ? 'blue' : 'steelblue';
                 });
             },
+            fittingDataLimited() {
+                var domain = this.fitting.domain;
+
+                return this.fittingData.filter((d, i) => {
+                    return domain[0] <= i && i < domain[1];
+                });
+            },
             xFitData() {
-                return this.fittingData.map(d => d[0]);
+                return this.fittingDataLimited.map(d => d[0]);
             },
             yFitData() {
-                return this.fittingData.map(d => this.fittingScale.apply(null, d));
+                return this.fittingDataLimited.map(d => this.fittingScale.apply(null, d));
             },
             xAxisType() {
                 return this.xIsLog ? 'log' : 'linear';

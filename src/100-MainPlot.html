@@ -36,7 +36,7 @@ module(function(exports, {
     },
     vuex: {
         getters: { getSidebar, getFittingData, getFitting },
-        actions: { setSidebar },
+        actions: { setSidebar, setFitting },
     },
 }) {
 
@@ -51,6 +51,7 @@ module(function(exports, {
             },
             actions: {
                 setSidebar,
+                setFitting,
             },
         },
         methods: {
