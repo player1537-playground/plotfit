@@ -4,7 +4,7 @@ module(function(exports, { scale, fitter }) {
 
     function getXScale({ xScale }) {
         return xScale;
-    };
+    }
     getters.getXScale = getXScale;
 
     function getXScaleFunction({ xScale }) {
@@ -12,12 +12,12 @@ module(function(exports, { scale, fitter }) {
             .isLog(xScale.isLog)
             .scope(xScale.scope)
             .expr(xScale.expr);
-    };
+    }
     getters.getXScaleFunction = getXScaleFunction;
 
     function getYScale({ yScale }) {
         return yScale;
-    };
+    }
     getters.getYScale = getYScale;
 
     function getYScaleFunction({ yScale }) {
@@ -25,18 +25,18 @@ module(function(exports, { scale, fitter }) {
             .isLog(yScale.isLog)
             .scope(yScale.scope)
             .expr(yScale.expr);
-    };
+    }
     getters.getYScaleFunction = getYScaleFunction;
 
     function getDevScaleFunction(scope) {
         return scale(['Q', 'I', 'dev']).expr('dev');
-    };
+    }
     getters.getDevScaleFunction = getDevScaleFunction;
 
 
     function getFitting({ fitting }) {
         return fitting;
-    };
+    }
     getters.getFitting = getFitting;
 
     function getFittingFunction(state) {
@@ -46,7 +46,7 @@ module(function(exports, { scale, fitter }) {
             .expr(state.fitting.expr)
             .domain(state.fitting.domain)
             .data(getFittingData(state));
-    };
+    }
     getters.getFittingFunction = getFittingFunction;
 
 
@@ -150,7 +150,7 @@ module(function(exports, { scale, fitter }) {
             [0.384601E+00,0.210350E-02,0.981830E-03],
             [0.403831E+00,0.176590E-02,0.100878E-02],
         ];
-    };
+    }
     getters.getData = getData;
 
     function getFittingData(state) {
@@ -165,12 +165,12 @@ module(function(exports, { scale, fitter }) {
                 devScale.apply(null, d),
             ];
         });
-    };
+    }
     getters.getFittingData = getFittingData;
 
     function getSidebar({ sidebar }) {
         return sidebar;
-    };
+    }
     getters.getSidebar = getSidebar;
 });
 </script>

@@ -44,7 +44,7 @@ module(function(exports, { cobyla, d3, expression }) {
             }
 
             return sumSqr;
-        };
+        }
 
         var calcfc = evaluate,
             numParams = paramNames.length,
@@ -106,9 +106,7 @@ module(function(exports, { cobyla, d3, expression }) {
             return my;
         };
 
-        my = d3.rebind(my, expr, 'scope', 'expr', 'variables', 'textExpr');
-
-        return my;
+        return d3.rebind(my, expr, 'scope', 'expr', 'variables', 'textExpr');
     };
 });
 </script>

@@ -37,9 +37,9 @@ module(function(exports, {
         },
         methods: {
             sidebarInputUpdate(e) {
-                var newIsLog = e.target.value.button
-                             ? !this.value.isLog
-                             : this.value.isLog;
+                var newIsLog = e.target.value.button ?
+                               !this.value.isLog :
+                               this.value.isLog;
                 this.emitEvent('input', {
                     expr: e.target.value.text,
                     isLog: newIsLog,

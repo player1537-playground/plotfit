@@ -120,11 +120,10 @@ module(function(exports, {
         },
 
         setSidebar({ dispatch, state: { sidebar } }, { left, right }) {
-            var sidebar = { left: sidebar.left, right: sidebar.right };
-            sidebar.left = left;
-            sidebar.right = right;
+            if (typeof left === 'undefined') left = sidebar.left;
+            if (typeof right === 'undefined') right = sidebar.right;
 
-            dispatch('SET_SIDEBAR', sidebar);
+            dispatch('SET_SIDEBAR', { left, right });
         },
     };
 });

@@ -62,9 +62,9 @@ module(function(exports, {
             },
             colors() {
                 return this.data.map((d, i) => {
-                    return this.fitting.domain[0] <= i && i < this.fitting.domain[1]
-                         ? 'blue'
-                         : 'steelblue';
+                    var withinRange = this.fitting.domain[0] <= i &&
+                                      i < this.fitting.domain[1];
+                    return withinRange ? 'blue' : 'steelblue';
                 });
             },
             xFitData() {

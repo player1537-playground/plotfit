@@ -23,6 +23,10 @@ watcher:
 	rm index.html
 	false
 
+.PHONY: check
+check: $(wildcard src/*.html)
+	jshint --extract=auto $^
+
 .PHONY: renumber
 renumber:
 	mkdir src2
