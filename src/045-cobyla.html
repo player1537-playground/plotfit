@@ -50,9 +50,27 @@ module(function(exports) {
     var cobyla = (function(my) {
         "use strict";
 
-        function arr(n) {var a=new Array(n); for(var i=0; i<n;i++) a[i]=0.0; return a; }
-        function arr2(n,m) {var a= new Array(n); var i=0; while(i<n) {a[i]=arr(m); i=i+1;} return a;}
-        function arraycopy(x, a, iox, b, n) {var i=0; while(i<n) {iox[i+b]=x[i+a];i++;}; }
+        function arr(n) {
+            var a = new Array(n);
+            for(var i=0; i<n; i++) {
+                a[i] = 0.0;
+            }
+            return a;
+        }
+
+        function arr2(n,m) {
+            var a = new Array(n);
+            for (var i=0; i<n; i++) {
+                a[i] = arr(m);
+            }
+            return a;
+        }
+
+        function arraycopy(x, a, iox, b, n) {
+            for (var i=0; i<n; i++) {
+                iox[i+b] = x[i+a];
+            }
+        }
 
 
         // status variable
@@ -147,14 +165,14 @@ module(function(exports) {
                 var f= calcfc(n, m, ix, ocon);
                 arraycopy(ocon, 0, con, 1, m);
                 return f;
-            }
+            };
 
 
             var status = cobylb(fcalcfc, n, m, mpp, iox, rhobeg, rhoend, iprint, maxfun);
             arraycopy(iox, 1, x, 0, n);
 
             return status;
-        }
+        };
 
         //    private static CobylaExitStatus cobylb(Calcfc calcfc, int n, int m, int mpp, double[] x,
         //      double rhobeg, double rhoend, int iprint, int maxfun)
@@ -171,6 +189,8 @@ module(function(exports) {
             //     first N columns of SIM.
 
             // Local variables
+
+            var i, j, k;
 
             var status=-1;
 
@@ -210,7 +230,7 @@ module(function(exports) {
             var nfvals = 0;
             var temp = 1.0 / rho;
 
-            for (var i = 1; i <= n; ++i)
+            for (i = 1; i <= n; ++i)
                 {
                     sim[i][np] = x[i];
                     sim[i][i] = rho;
@@ -237,7 +257,7 @@ module(function(exports) {
                 ++nfvals;
 
                 f = calcfc(n, m, x, con);
-                resmax = 0.0; for (var k = 1; k <= m; ++k) resmax = Math.max(resmax, -con[k]);
+                resmax = 0.0; for (k = 1; k <= m; ++k) resmax = Math.max(resmax, -con[k]);
                 //alert("   f="+f+"  resmax="+resmax);
                 if (nfvals == iprint - 1 || iprint == 3)
                     {
@@ -258,7 +278,7 @@ module(function(exports) {
                     {
                         skipVertexIdent = false;
 
-                        for (var i = 1; i <= mpp; ++i) datmat[i][jdrop] = con[i];
+                        for (i = 1; i <= mpp; ++i) datmat[i][jdrop] = con[i];
 
                         if (nfvals <= np)
                             {
@@ -275,15 +295,15 @@ module(function(exports) {
                                         else
                                             {
                                                 sim[jdrop][np] = x[jdrop];
-                                                for (var k = 1; k <= mpp; ++k)
+                                                for (k = 1; k <= mpp; ++k)
                                                     {
                                                         datmat[k][jdrop] = datmat[k][np];
                                                         datmat[k][np] = con[k];
                                                     }
-                                                for (var k = 1; k <= jdrop; ++k)
+                                                for (k = 1; k <= jdrop; ++k)
                                                     {
                                                         sim[jdrop][k] = -rho;
-                                                        temp = 0.0; for (var i = k; i <= jdrop; ++i) temp -= simi[i][k];
+                                                        temp = 0.0; for (i = k; i <= jdrop; ++i) temp -= simi[i][k];
                                                         simi[jdrop][k] = temp;
                                                     }
                                             }
@@ -312,7 +332,7 @@ module(function(exports) {
                                 var phimin = datmat[mp][np] + parmu * datmat[mpp][np];
                                 var nbest = np;
 
-                                for (var j = 1; j <= n; ++j)
+                                for (j = 1; j <= n; ++j)
                                     {
                                         temp = datmat[mp][j] + parmu * datmat[mpp][j];
                                         if (temp < phimin)
@@ -320,7 +340,7 @@ module(function(exports) {
                                                 nbest = j;
                                                 phimin = temp;
                                             }
-                                        else if (temp == phimin && parmu == 0.0 && datmat[mpp][j] < datmat[mpp][nbest])
+                                        else if (temp == phimin && parmu === 0.0 && datmat[mpp][j] < datmat[mpp][nbest])
                                             {
                                                 nbest = j;
                                             }
@@ -331,20 +351,20 @@ module(function(exports) {
 
                                 if (nbest <= n)
                                     {
-                                        for (var i = 1; i <= mpp; ++i)
+                                        for (i = 1; i <= mpp; ++i)
                                             {
                                                 temp = datmat[i][np];
                                                 datmat[i][np] = datmat[i][nbest];
                                                 datmat[i][nbest] = temp;
                                             }
-                                        for (var i = 1; i <= n; ++i)
+                                        for (i = 1; i <= n; ++i)
                                             {
                                                 temp = sim[i][nbest];
                                                 sim[i][nbest] = 0.0;
                                                 sim[i][np] += temp;
 
                                                 var tempa = 0.0;
-                                                for (var k = 1; k <= n; ++k)
+                                                for (k = 1; k <= n; ++k)
                                                     {
                                                         sim[i][k] -= temp;
                                                         tempa -= simi[k][i];
@@ -357,9 +377,9 @@ module(function(exports) {
                                 //     the leading N by N submatrix of SIG.
 
                                 var error = 0.0;
-                                for (var i = 1; i <= n; ++i)
+                                for (i = 1; i <= n; ++i)
                                     {
-                                        for (var j = 1; j <= n; ++j)
+                                        for (j = 1; j <= n; ++j)
                                             {
                                                 temp = DOT_PRODUCT(PART(ROW(simi, i), 1, n), PART(COL(sim, j), 1, n)) - (i == j ? 1.0 : 0.0);
                                                 error = Math.max(error, Math.abs(temp));
@@ -376,12 +396,12 @@ module(function(exports) {
                                 //     after the constraint gradients in the array A. The vector W is used for
                                 //     working space.
 
-                                for (var k = 1; k <= mp; ++k)
+                                for (k = 1; k <= mp; ++k)
                                     {
                                         con[k] = -datmat[k][np];
-                                        for (var j = 1; j <= n; ++j) w[j] = datmat[k][j] + con[k];
+                                        for (j = 1; j <= n; ++j) w[j] = datmat[k][j] + con[k];
 
-                                        for (var i = 1; i <= n; ++i)
+                                        for (i = 1; i <= n; ++i)
                                             {
                                                 a[i][k] = (k == mp ? -1.0 : 1.0) * DOT_PRODUCT(PART(w, 1, n), PART(COL(simi, i), 1, n));
                                             }
@@ -394,10 +414,10 @@ module(function(exports) {
                                 parsig = alpha * rho;
                                 var pareta = beta * rho;
 
-                                for (var j = 1; j <= n; ++j)
+                                for (j = 1; j <= n; ++j)
                                     {
-                                        var wsig = 0.0; for (var k = 1; k <= n; ++k) wsig += simi[j][k] * simi[j][k];
-                                        var weta = 0.0; for (var k = 1; k <= n; ++k) weta += sim[k][j] * sim[k][j];
+                                        var wsig = 0.0; for (k = 1; k <= n; ++k) wsig += simi[j][k] * simi[j][k];
+                                        var weta = 0.0; for (k = 1; k <= n; ++k) weta += sim[k][j] * sim[k][j];
                                         vsig[j] = 1.0 / Math.sqrt(wsig);
                                         veta[j] = Math.sqrt(weta);
                                         if (vsig[j] < parsig || veta[j] > pareta) iflag = false;
@@ -410,7 +430,7 @@ module(function(exports) {
                                     {
                                         jdrop = 0;
                                         temp = pareta;
-                                        for (var j = 1; j <= n; ++j)
+                                        for (j = 1; j <= n; ++j)
                                             {
                                                 if (veta[j] > temp)
                                                     {
@@ -418,9 +438,9 @@ module(function(exports) {
                                                         temp = veta[j];
                                                     }
                                             }
-                                        if (jdrop == 0)
+                                        if (jdrop === 0)
                                             {
-                                                for (var j = 1; j <= n; ++j)
+                                                for (j = 1; j <= n; ++j)
                                                     {
                                                         if (vsig[j] < temp)
                                                             {
@@ -433,12 +453,12 @@ module(function(exports) {
                                         //     Calculate the step to the new vertex and its sign.
 
                                         temp = gamma * rho * vsig[jdrop];
-                                        for (var k = 1; k <= n; ++k) dx[k] = temp * simi[jdrop][k];
+                                        for (k = 1; k <= n; ++k) dx[k] = temp * simi[jdrop][k];
                                         var cvmaxp = 0.0;
                                         var cvmaxm = 0.0;
 
                                         total = 0.0;
-                                        for (var k = 1; k <= mp; ++k)
+                                        for (k = 1; k <= mp; ++k)
                                             {
                                                 total = DOT_PRODUCT(PART(COL(a, k), 1, n), PART(dx, 1, n));
                                                 if (k < mp)
@@ -453,20 +473,20 @@ module(function(exports) {
                                         //     Update the elements of SIM and SIMI, and set the next X.
 
                                         temp = 0.0;
-                                        for (var i = 1; i <= n; ++i)
+                                        for (i = 1; i <= n; ++i)
                                             {
                                                 dx[i] = dxsign * dx[i];
                                                 sim[i][jdrop] = dx[i];
                                                 temp += simi[jdrop][i] * dx[i];
                                             }
-                                        for (var k = 1; k <= n; ++k) simi[jdrop][k] /= temp;
+                                        for (k = 1; k <= n; ++k) simi[jdrop][k] /= temp;
 
-                                        for (var j = 1; j <= n; ++j)
+                                        for (j = 1; j <= n; ++j)
                                             {
                                                 if (j != jdrop)
                                                     {
                                                         temp = DOT_PRODUCT(PART(ROW(simi, j), 1, n), PART(dx, 1, n));
-                                                        for (var k = 1; k <= n; ++k) simi[j][k] -= temp * simi[jdrop][k];
+                                                        for (k = 1; k <= n; ++k) simi[j][k] -= temp * simi[jdrop][k];
                                                     }
                                                 x[j] = sim[j][np] + dx[j];
                                             }
@@ -479,7 +499,7 @@ module(function(exports) {
                                 ifull = trstlp(n, m, a, con, rho, dx);
                                 if (!ifull)
                                     {
-                                        temp = 0.0; for (var k = 1; k <= n; ++k) temp += dx[k] * dx[k];
+                                        temp = 0.0; for (k = 1; k <= n; ++k) temp += dx[k] * dx[k];
                                         if (temp < 0.25 * rho * rho)
                                             {
                                                 ibrnch = true;
@@ -493,7 +513,7 @@ module(function(exports) {
                                 total = 0.0;
                                 var resnew = 0.0;
                                 con[mp] = 0.0;
-                                for (var k = 1; k <= mp; ++k)
+                                for (k = 1; k <= mp; ++k)
                                     {
                                         total = con[k] - DOT_PRODUCT(PART(COL(a, k), 1, n), PART(dx, 1, n));
                                         if (k < mp) resnew = Math.max(resnew, total);
@@ -511,10 +531,10 @@ module(function(exports) {
                                         parmu = 2.0 * barmu;
                                         if (iprint >= 2) console.log("Increase in PARMU to "+parmu);
                                         var phi = datmat[mp][np] + parmu * datmat[mpp][np];
-                                        for (var j = 1; j <= n; ++j)
+                                        for (j = 1; j <= n; ++j)
                                             {
                                                 temp = datmat[mp][j] + parmu * datmat[mpp][j];
-                                                if (temp < phi || (temp == phi && parmu == 0.0 && datmat[mpp][j] < datmat[mpp][np])) continue L_140;
+                                                if (temp < phi || (temp == phi && parmu === 0.0 && datmat[mpp][j] < datmat[mpp][np])) continue L_140;
                                             }
                                     }
                                 prerem = parmu * prerec - total;
@@ -522,7 +542,7 @@ module(function(exports) {
                                 //     Calculate the constraint and objective functions at x(*).
                                 //     Then find the actual reduction in the merit function.
 
-                                for (var k = 1; k <= n; ++k) x[k] = sim[k][np] + dx[k];
+                                for (k = 1; k <= n; ++k) x[k] = sim[k][np] + dx[k];
                                 ibrnch = true;
                                 continue L_40;
                             }
@@ -531,7 +551,7 @@ module(function(exports) {
                         var vmold = datmat[mp][np] + parmu * datmat[mpp][np];
                         var vmnew = f + parmu * resmax;
                         var trured = vmold - vmnew;
-                        if (parmu == 0.0 && f == datmat[mp][np])
+                        if (parmu === 0.0 && f == datmat[mp][np])
                             {
                                 prerem = prerec;
                                 trured = datmat[mpp][np] - resmax;
@@ -544,7 +564,7 @@ module(function(exports) {
 
                         var ratio = trured <= 0.0 ? 1.0 : 0.0;
                         jdrop = 0;
-                        for (var j = 1; j <= n; ++j)
+                        for (j = 1; j <= n; ++j)
                             {
                                 temp = Math.abs(DOT_PRODUCT(PART(ROW(simi, j), 1, n), PART(dx, 1, n)));
                                 if (temp > ratio)
@@ -559,14 +579,14 @@ module(function(exports) {
 
                         var edgmax = delta * rho;
                         var l = 0;
-                        for (var j = 1; j <= n; ++j)
+                        for (j = 1; j <= n; ++j)
                             {
                                 if (sigbar[j] >= parsig || sigbar[j] >= vsig[j])
                                     {
                                         temp = veta[j];
                                         if (trured > 0.0)
                                             {
-                                                temp = 0.0; for (var k = 1; k <= n; ++k) temp += Math.pow(dx[k] - sim[k][j], 2.0);
+                                                temp = 0.0; for (k = 1; k <= n; ++k) temp += Math.pow(dx[k] - sim[k][j], 2.0);
                                                 temp = Math.sqrt(temp);
                                             }
                                         if (temp > edgmax)
@@ -578,26 +598,26 @@ module(function(exports) {
                             }
                         if (l > 0) jdrop = l;
 
-                        if (jdrop != 0)
+                        if (jdrop !== 0)
                             {
                                 //     Revise the simplex by updating the elements of SIM, SIMI and DATMAT.
 
                                 temp = 0.0;
-                                for (var i = 1; i <= n; ++i)
+                                for (i = 1; i <= n; ++i)
                                     {
                                         sim[i][jdrop] = dx[i];
                                         temp += simi[jdrop][i] * dx[i];
                                     }
-                                for (var k = 1; k <= n; ++k) simi[jdrop][k] /= temp;
-                                for (var j = 1; j <= n; ++j)
+                                for (k = 1; k <= n; ++k) simi[jdrop][k] /= temp;
+                                for (j = 1; j <= n; ++j)
                                     {
                                         if (j != jdrop)
                                             {
                                                 temp = DOT_PRODUCT(PART(ROW(simi, j), 1, n), PART(dx, 1, n));
-                                                for (var k = 1; k <= n; ++k) simi[j][k] -= temp * simi[jdrop][k];
+                                                for (k = 1; k <= n; ++k) simi[j][k] -= temp * simi[jdrop][k];
                                             }
                                     }
-                                for (var k = 1; k <= mpp; ++k) datmat[k][jdrop] = con[k];
+                                for (k = 1; k <= mpp; ++k) datmat[k][jdrop] = con[k];
 
                                 //     Branch back for further iterations with the current RHO.
 
@@ -626,11 +646,11 @@ module(function(exports) {
                     if (parmu > 0.0)
                         {
                             var denom = 0.0;
-                            for (var k = 1; k <= mp; ++k)
+                            for (k = 1; k <= mp; ++k)
                                 {
                                     cmin = datmat[k][np];
                                     cmax = cmin;
-                                    for (var i = 1; i <= n; ++i)
+                                    for (i = 1; i <= n; ++i)
                                         {
                                             cmin = Math.min(cmin, datmat[k][i]);
                                             cmax = Math.max(cmax, datmat[k][i]);
@@ -641,7 +661,7 @@ module(function(exports) {
                                             denom = denom <= 0.0 ? temp : Math.min(denom, temp);
                                         }
                                 }
-                            if (denom == 0.0)
+                            if (denom === 0.0)
                                 {
                                     parmu = 0.0;
                                 }
@@ -678,7 +698,7 @@ module(function(exports) {
                 break;
             }
 
-            for (var k = 1; k <= n; ++k) x[k] = sim[k][np];
+            for (k = 1; k <= n; ++k) x[k] = sim[k][np];
             f = datmat[mp][np];
             resmax = datmat[mpp][np];
             if (iprint >= 1) PrintIterationResult(nfvals, f, resmax, x, n);
@@ -730,6 +750,7 @@ module(function(exports) {
             // Local variables
 
             var temp=0;
+            var acca, accb, kw, kk, sp, kp, alpha, beta, isave, vsave, k;
 
             var nactx = 0;
             var resold = 0.0;
@@ -754,7 +775,7 @@ module(function(exports) {
             var resmax = 0.0;
             if (m >= 1)
                 {
-                    for (var k = 1; k <= m; ++k)
+                    for (k = 1; k <= m; ++k)
                         {
                             if (b[k] > resmax)
                                 {
@@ -762,7 +783,7 @@ module(function(exports) {
                                     icon = k;
                                 }
                         }
-                    for (var k = 1; k <= m; ++k)
+                    for (k = 1; k <= m; ++k)
                         {
                             iact[k] = k;
                             vmultc[k] = resmax - b[k];
@@ -781,7 +802,7 @@ module(function(exports) {
                 L_60:
                      do
                 {
-                    if (!first || (first && resmax == 0.0))
+                    if (!first || (first && resmax === 0.0))
                         {
                             mcon = m + 1;
                             icon = mcon;
@@ -800,7 +821,7 @@ module(function(exports) {
                     {
                         var optnew = mcon == m ? resmax : -DOT_PRODUCT(PART(dx, 1, n), PART(COL(a, mcon), 1, n));
 
-                        if (icount == 0 || optnew < optold)
+                        if (icount === 0 || optnew < optold)
                             {
                                 optold = optnew;
                                 nactx = nact;
@@ -815,7 +836,7 @@ module(function(exports) {
                             {
                             --icount;
                             }
-                        if (icount == 0) break L_60;
+                        if (icount === 0) break L_60;
 
                         //     If ICON exceeds NACT, then we add the constraint with index IACT(ICON) to
                         //     the active set. Apply Givens rotations so that the last N-NACT-1 columns
@@ -830,20 +851,20 @@ module(function(exports) {
                                     {
                                         //     Delete the constraint that has the index IACT(ICON) from the active set.
 
-                                        var isave = iact[icon];
-                                        var vsave = vmultc[icon];
-                                        var k = icon;
+                                        isave = iact[icon];
+                                        vsave = vmultc[icon];
+                                        k = icon;
                                         do
                                         {
-                                            var kp = k + 1;
-                                            var kk = iact[kp];
-                                            var sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kk), 1, n));
+                                            kp = k + 1;
+                                            kk = iact[kp];
+                                            sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kk), 1, n));
                                             temp = Math.sqrt(sp * sp + zdota[kp] * zdota[kp]);
-                                            var alpha = zdota[kp] / temp;
-                                            var beta = sp / temp;
+                                            alpha = zdota[kp] / temp;
+                                            beta = sp / temp;
                                             zdota[kp] = alpha * zdota[k];
                                             zdota[k] = temp;
-                                            for (var i = 1; i <= n; ++i)
+                                            for (i = 1; i <= n; ++i)
                                                 {
                                                     temp = alpha * z[i][kp] + beta * z[i][k];
                                                     z[i][kp] = alpha * z[i][k] - beta * z[i][kp];
@@ -867,47 +888,47 @@ module(function(exports) {
                                         //     Pick the next search direction of stage two.
 
                                         temp = 1.0 / zdota[nact];
-                                        for (var k = 1; k <= n; ++k) sdirn[k] = temp * z[k][nact];
+                                        for (k = 1; k <= n; ++k) sdirn[k] = temp * z[k][nact];
                                     }
                                 else
                                     {
                                         temp = DOT_PRODUCT(PART(sdirn, 1, n), PART(COL(z, nact + 1), 1, n));
-                                        for (var k = 1; k <= n; ++k) sdirn[k] -= temp * z[k][nact + 1];
+                                        for (k = 1; k <= n; ++k) sdirn[k] -= temp * z[k][nact + 1];
                                     }
                             }
                         else
                             {
-                                var kk = iact[icon];
-                                for (var k = 1; k <= n; ++k) dxnew[k] = a[k][kk];
+                                kk = iact[icon];
+                                for (k = 1; k <= n; ++k) dxnew[k] = a[k][kk];
                                 var tot = 0.0;
 
                                 {
-                                    var k = n;
+                                    k = n;
                                     while (k > nact)
                                         {
-                                            var sp = 0.0;
+                                            sp = 0.0;
                                             var spabs = 0.0;
-                                            for (var i = 1; i <= n; ++i)
+                                            for (i = 1; i <= n; ++i)
                                                 {
                                                     temp = z[i][k] * dxnew[i];
                                                     sp += temp;
                                                     spabs += Math.abs(temp);
                                                 }
-                                            var acca = spabs + 0.1 * Math.abs(sp);
-                                            var accb = spabs + 0.2 * Math.abs(sp);
+                                            acca = spabs + 0.1 * Math.abs(sp);
+                                            accb = spabs + 0.2 * Math.abs(sp);
                                             if (spabs >= acca || acca >= accb) sp = 0.0;
-                                            if (tot == 0.0)
+                                            if (tot === 0.0)
                                                 {
                                                     tot = sp;
                                                 }
                                             else
                                                 {
-                                                    var kp = k + 1;
+                                                    kp = k + 1;
                                                     temp = Math.sqrt(sp * sp + tot * tot);
-                                                    var alpha = sp / temp;
-                                                    var beta = tot / temp;
+                                                    alpha = sp / temp;
+                                                    beta = tot / temp;
                                                     tot = temp;
-                                                    for (var i = 1; i <= n; ++i)
+                                                    for (i = 1; i <= n; ++i)
                                                         {
                                                             temp = alpha * z[i][k] + beta * z[i][kp];
                                                             z[i][kp] = alpha * z[i][kp] - beta * z[i][k];
@@ -918,7 +939,7 @@ module(function(exports) {
                                         }
                                 }
 
-                                if (tot == 0.0)
+                                if (tot === 0.0)
                                     {
                                         //     The next instruction is reached if a deletion has to be made from the
                                         //     active set in order to make room for the new active constraint, because
@@ -929,20 +950,20 @@ module(function(exports) {
 
                                         ratio = -1.0;
                                         {
-                                            var k = nact;
+                                            k = nact;
                                             do
                                             {
                                                 var zdotv = 0.0;
                                                 var zdvabs = 0.0;
 
-                                                for (var i = 1; i <= n; ++i)
+                                                for (i = 1; i <= n; ++i)
                                                     {
                                                         temp = z[i][k] * dxnew[i];
                                                         zdotv += temp;
                                                         zdvabs += Math.abs(temp);
                                                     }
-                                                var acca = zdvabs + 0.1 * Math.abs(zdotv);
-                                                var accb = zdvabs + 0.2 * Math.abs(zdotv);
+                                                acca = zdvabs + 0.1 * Math.abs(zdotv);
+                                                accb = zdvabs + 0.2 * Math.abs(zdotv);
                                                 if (zdvabs < acca && acca < accb)
                                                     {
                                                         temp = zdotv / zdota[k];
@@ -954,8 +975,8 @@ module(function(exports) {
 
                                                         if (k >= 2)
                                                             {
-                                                                var kw = iact[k];
-                                                                for (var i = 1; i <= n; ++i) dxnew[i] -= temp * a[i][kw];
+                                                                kw = iact[k];
+                                                                for (i = 1; i <= n; ++i) dxnew[i] -= temp * a[i][kw];
                                                             }
                                                         vmultd[k] = temp;
                                                     }
@@ -971,24 +992,24 @@ module(function(exports) {
                                         //     that the one to be replaced is at the end of the list. Also calculate the
                                         //     new value of ZDOTA(NACT) and branch if it is not acceptable.
 
-                                        for (var k = 1; k <= nact; ++k)
+                                        for (k = 1; k <= nact; ++k)
                                             vmultc[k] = Math.max(0.0, vmultc[k] - ratio * vmultd[k]);
                                         if (icon < nact)
                                             {
-                                                var isave = iact[icon];
-                                                var vsave = vmultc[icon];
-                                                var k = icon;
+                                                isave = iact[icon];
+                                                vsave = vmultc[icon];
+                                                k = icon;
                                                 do
                                                 {
-                                                    var kp = k + 1;
-                                                    var kw = iact[kp];
-                                                    var sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kw), 1, n));
+                                                    kp = k + 1;
+                                                    kw = iact[kp];
+                                                    sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kw), 1, n));
                                                     temp = Math.sqrt(sp * sp + zdota[kp] * zdota[kp]);
-                                                    var alpha = zdota[kp] / temp;
-                                                    var beta = sp / temp;
+                                                    alpha = zdota[kp] / temp;
+                                                    beta = sp / temp;
                                                     zdota[kp] = alpha * zdota[k];
                                                     zdota[k] = temp;
-                                                    for (var i = 1; i <= n; ++i)
+                                                    for (i = 1; i <= n; ++i)
                                                         {
                                                             temp = alpha * z[i][kp] + beta * z[i][k];
                                                             z[i][kp] = alpha * z[i][k] - beta * z[i][kp];
@@ -1002,7 +1023,7 @@ module(function(exports) {
                                                 vmultc[k] = vsave;
                                             }
                                         temp = DOT_PRODUCT(PART(COL(z, nact), 1, n), PART(COL(a, kk), 1, n));
-                                        if (temp == 0.0) break L_60;
+                                        if (temp === 0.0) break L_60;
                                         zdota[nact] = temp;
                                         vmultc[icon] = 0.0;
                                         vmultc[nact] = ratio;
@@ -1025,14 +1046,14 @@ module(function(exports) {
                                 iact[nact] = kk;
                                 if (mcon > m && kk != mcon)
                                     {
-                                        var k = nact - 1;
-                                        var sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kk), 1, n));
+                                        k = nact - 1;
+                                        sp = DOT_PRODUCT(PART(COL(z, k), 1, n), PART(COL(a, kk), 1, n));
                                         temp = Math.sqrt(sp * sp + zdota[nact] * zdota[nact]);
-                                        var alpha = zdota[nact] / temp;
-                                        var beta = sp / temp;
+                                        alpha = zdota[nact] / temp;
+                                        beta = sp / temp;
                                         zdota[nact] = alpha * zdota[k];
                                         zdota[k] = temp;
-                                        for (var i = 1; i <= n; ++i)
+                                        for (i = 1; i <= n; ++i)
                                             {
                                                 temp = alpha * z[i][nact] + beta * z[i][k];
                                                 z[i][nact] = alpha * z[i][k] - beta * z[i][nact];
@@ -1053,13 +1074,13 @@ module(function(exports) {
                                         //     Pick the next search direction of stage two.
 
                                         temp = 1.0 / zdota[nact];
-                                        for (var k = 1; k <= n; ++k) sdirn[k] = temp * z[k][nact];
+                                        for (k = 1; k <= n; ++k) sdirn[k] = temp * z[k][nact];
                                     }
                                 else
                                     {
                                         kk = iact[nact];
                                         temp = (DOT_PRODUCT(PART(sdirn, 1, n), PART(COL(a, kk), 1, n)) - 1.0) / zdota[nact];
-                                        for (var k = 1; k <= n; ++k) sdirn[k] -= temp * z[k][nact];
+                                        for (k = 1; k <= n; ++k) sdirn[k] -= temp * z[k][nact];
                                     }
                             }
 
@@ -1072,7 +1093,7 @@ module(function(exports) {
                         var dd = rho * rho;
                         var sd = 0.0;
                         var ss = 0.0;
-                        for (var i = 1; i <= n; ++i)
+                        for (i = 1; i <= n; ++i)
                             {
                                 if (Math.abs(dx[i]) >= 1.0E-6 * rho) dd -= dx[i] * dx[i];
                                 sd += dx[i] * sdirn[i];
@@ -1085,8 +1106,8 @@ module(function(exports) {
                         step = stpful;
                         if (mcon == m)
                             {
-                                var acca = step + 0.1 * resmax;
-                                var accb = step + 0.2 * resmax;
+                                acca = step + 0.1 * resmax;
+                                accb = step + 0.2 * resmax;
                                 if (step >= acca || acca >= accb) break L_70;
                                 step = Math.min(step, resmax);
                             }
@@ -1096,14 +1117,14 @@ module(function(exports) {
                         //     Because DXNEW will be changed during the calculation of some Lagrange
                         //     multipliers, it will be restored to the following value later.
 
-                        for (var k = 1; k <= n; ++k) dxnew[k] = dx[k] + step * sdirn[k];
+                        for (k = 1; k <= n; ++k) dxnew[k] = dx[k] + step * sdirn[k];
                         if (mcon == m)
                             {
                                 resold = resmax;
                                 resmax = 0.0;
-                                for (var k = 1; k <= nact; ++k)
+                                for (k = 1; k <= nact; ++k)
                                     {
-                                        var kk = iact[k];
+                                        kk = iact[k];
                                         temp = b[kk] - DOT_PRODUCT(PART(COL(a, kk), 1, n), PART(dxnew, 1, n));
                                         resmax = Math.max(resmax, temp);
                                     }
@@ -1115,25 +1136,25 @@ module(function(exports) {
                         //     Lagrange multipliers.
 
                         {
-                            var k = nact;
+                            k = nact;
                             do
                             {
                                 var zdotw = 0.0;
                                 var zdwabs = 0.0;
-                                for (var i = 1; i <= n; ++i)
+                                for (i = 1; i <= n; ++i)
                                     {
                                         temp = z[i][k] * dxnew[i];
                                         zdotw += temp;
                                         zdwabs += Math.abs(temp);
                                     }
-                                var acca = zdwabs + 0.1 * Math.abs(zdotw);
-                                var accb = zdwabs + 0.2 * Math.abs(zdotw);
+                                acca = zdwabs + 0.1 * Math.abs(zdotw);
+                                accb = zdwabs + 0.2 * Math.abs(zdotw);
                                 if (zdwabs >= acca || acca >= accb) zdotw = 0.0;
                                 vmultd[k] = zdotw / zdota[k];
                                 if (k >= 2)
                                     {
-                                        var kk = iact[k];
-                                        for (var i = 1; i <= n; ++i) dxnew[i] -= vmultd[k] * a[i][kk];
+                                        kk = iact[k];
+                                        for (i = 1; i <= n; ++i) dxnew[i] -= vmultd[k] * a[i][kk];
                                     }
                             } while (k-- >= 2);
                             if (mcon > m) vmultd[nact] = Math.max(0.0, vmultd[nact]);
@@ -1141,23 +1162,23 @@ module(function(exports) {
 
                         //     Complete VMULTC by finding the new constraint residuals.
 
-                        for (var k = 1; k <= n; ++k) dxnew[k] = dx[k] + step * sdirn[k];
+                        for (k = 1; k <= n; ++k) dxnew[k] = dx[k] + step * sdirn[k];
                         if (mcon > nact)
                             {
                                 var kl = nact + 1;
-                                for (var k = kl; k <= mcon; ++k)
+                                for (k = kl; k <= mcon; ++k)
                                     {
-                                        var kk = iact[k];
+                                        kk = iact[k];
                                         var total = resmax - b[kk];
                                         var sumabs = resmax + Math.abs(b[kk]);
-                                        for (var i = 1; i <= n; ++i)
+                                        for (i = 1; i <= n; ++i)
                                             {
                                                 temp = a[i][kk] * dxnew[i];
                                                 total += temp;
                                                 sumabs += Math.abs(temp);
                                             }
-                                        var acca = sumabs + 0.1 * Math.abs(total);
-                                        var accb = sumabs + 0.2 * Math.abs(total);
+                                        acca = sumabs + 0.1 * Math.abs(total);
+                                        accb = sumabs + 0.2 * Math.abs(total);
                                         if (sumabs >= acca || acca >= accb) total = 0.0;
                                         vmultd[k] = total;
                                     }
@@ -1167,7 +1188,7 @@ module(function(exports) {
 
                         ratio = 1.0;
                         icon = 0;
-                        for (var k = 1; k <= mcon; ++k)
+                        for (k = 1; k <= mcon; ++k)
                             {
                                 if (vmultd[k] < 0.0)
                                     {
@@ -1183,8 +1204,8 @@ module(function(exports) {
                         //     Update DX, VMULTC and RESMAX.
 
                         temp = 1.0 - ratio;
-                        for (var k = 1; k <= n; ++k) dx[k] = temp * dx[k] + ratio * dxnew[k];
-                        for (var k = 1; k <= mcon; ++k)
+                        for (k = 1; k <= n; ++k) dx[k] = temp * dx[k] + ratio * dxnew[k];
+                        for (k = 1; k <= mcon; ++k)
                             vmultc[k] = Math.max(0.0, temp * vmultc[k] + ratio * vmultd[k]);
                         if (mcon == m) resmax = resold + ratio * (resmax - resold);
 
@@ -1238,7 +1259,7 @@ module(function(exports) {
         function FORMAT( x)
         {
             var fmt = "";
-            for (var i = 0; i < x.length; ++i) fmt = fmt + ", ", x[i];
+            for (var i = 0; i < x.length; ++i) fmt = fmt + ", " + x[i];
             return fmt;
         }
 
