@@ -1,0 +1,37 @@
+<script type="text/html" id="Configuration">
+    <div class="configuration btn-group-vertical" >
+        <div v-for="config in configurations" class="btn-group" >
+            <div class="btn-group btn-group-justified" >
+                <div class="btn-group" >
+                    <button type="button"
+                            class="btn btn-default"
+                            @click="setConfiguration(config)">
+                        {{ config.name }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+module(function(exports, {
+    vuex: {
+        getters: { getConfigurations },
+        actions: { setConfiguration },
+    },
+}) {
+
+    exports.components.Configuration = {
+        name: 'Configuration',
+        template: '#Configuration',
+        vuex: {
+            getters: {
+                configurations: getConfigurations,
+            },
+            actions: {
+                setConfiguration,
+            },
+        },
+    };
+});
+</script>

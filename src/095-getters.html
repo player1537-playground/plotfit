@@ -172,5 +172,48 @@ module(function(exports, { scale, fitter }) {
         return sidebar;
     }
     getters.getSidebar = getSidebar;
+
+    function getConfigurations(state) {
+        return [
+            {
+                name: 'Reset',
+                yScale: { expr: 'I', isLog: false, scope: [] },
+                xScale: { expr: 'Q', isLog: false, scope: [] },
+                fitting: { expr: '', isFitting: false, scope: [] },
+            },
+            {
+                name: 'Guinier',
+                yScale: { expr: 'log(I)', isLog: false, scope: [] },
+                xScale: { expr: 'log(Q)', isLog: false, scope: [] },
+                fitting: { expr: '-Rg^2/3*X+b', isFitting: false, scope: [] },
+            },
+            {
+                name: 'Porod',
+                yScale: { expr: 'log(I)', isLog: false, scope: [] },
+                xScale: { expr: 'log(Q)', isLog: false, scope: [] },
+                fitting: { expr: 'A-n*X', isFitting: false, scope: [] },
+            },
+            {
+                name: 'Zimm',
+                yScale: { expr: '1/I', isLog: false, scope: [] },
+                xScale: { expr: 'Q^2', isLog: false, scope: [] },
+                fitting: { expr: '1/I0+Cl^2/I0*X', isFitting: false, scope: [] },
+            },
+            {
+                name: 'Kratky',
+                yScale: { expr: 'log(Q^2*I)', isLog: false, scope: [] },
+                xScale: { expr: 'log(Q)', isLog: false, scope: [] },
+                fitting: { expr: 'm*X+b', isFitting: false, scope: [] },
+            },
+            {
+                name: 'Debye Beuche',
+                yScale: { expr: 'sqrt(I)', isLog: false, scope: [] },
+                xScale: { expr: 'Q^2', isLog: false, scope: [] },
+                fitting: { expr: 'm*X+I0', isFitting: false, scope: [] },
+            },
+        ];
+    }
+    getters.getConfigurations = getConfigurations;
+
 });
 </script>
