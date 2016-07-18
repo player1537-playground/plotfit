@@ -71,6 +71,6 @@ renumber:
 
 # Source transformations
 
-index.html: $(wildcard src/*.html)
+index.html: $(sort $(wildcard src/*.html))
 	find . -name '*~' -exec rm {} \+
 	cat $^ > $@
