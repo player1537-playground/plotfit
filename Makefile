@@ -27,7 +27,7 @@ endif
 
 .PHONY: all
 all:
-	$(MAKE) -j 2 watcher server
+	+$(MAKE) -j 2 watcher server
 
 .PHONY: depend
 depend:
@@ -50,7 +50,7 @@ server:
 .PHONY: watcher
 watcher:
 	trap exit INT TERM; \
-	while true; do ls -d src/*.html | $(ENTR) -d -r make check index.html; done
+	while true; do ls -d src/*.html | $(ENTR) -d -r $(MAKE) check index.html; done
 	rm index.html
 	false
 
