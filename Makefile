@@ -5,12 +5,43 @@ SHELL := bash
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
+# Environment variables
+
+ifndef NPM
+NPM := $(firstword $(shell which npm 2>/dev/null))
+endif
+
 ifndef SERVER
 SERVER := python3 -m http.server 8888
 endif
 
+ifndef ENTR
+ENTR := $(firstword $(shell which entr scripts/entr.bash 2>/dev/null))
+endif
+
+ifndef JSHINT
+JSHINT := $(firstword $(shell which jshint node_modules/.bin/jshint 2>/dev/null))
+endif
+
+# Standard Targets
+
+.PHONY: all
 all:
 	$(MAKE) -j 2 watcher server
+
+.PHONY: depend
+depend:
+	npm install
+
+.PHONY: check
+check: $(wildcard src/*.html)
+ifneq ($(JSHINT),)
+	$(JSHINT) --extract=auto $^
+else
+	@echo "No jshint installed"
+endif
+
+# Application-specific targets
 
 .PHONY: server
 server:
@@ -19,13 +50,9 @@ server:
 .PHONY: watcher
 watcher:
 	trap exit INT TERM; \
-	while true; do ls -d src/*.html | entr -d -r make check index.html; done
+	while true; do ls -d src/*.html | $(ENTR) -d -r make check index.html; done
 	rm index.html
 	false
-
-.PHONY: check
-check: $(wildcard src/*.html)
-	jshint --extract=auto $^
 
 .PHONY: renumber
 renumber:
@@ -41,6 +68,8 @@ renumber:
 	done
 	rm -r src
 	git mv src2 src
+
+# Source transformations
 
 index.html: $(wildcard src/*.html)
 	find . -name '*~' -exec rm {} \+
